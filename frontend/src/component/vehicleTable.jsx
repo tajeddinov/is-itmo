@@ -38,7 +38,11 @@ export default function VehicleTable({onOpenEditVehicleModal, onReadyRefresh, on
             floatingFilter: true
         },
         {
-            headerName: "Edit", filter: false, width: 90,
+            headerName: "Edit",
+            filter: false,
+            floatingFilter: false,
+            sortable: false,
+            width: 90,
             cellRenderer: (p) => (
                 <button
                     style={{
@@ -325,25 +329,21 @@ export default function VehicleTable({onOpenEditVehicleModal, onReadyRefresh, on
     }, []);
 
     return (
-        <div style={{minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: 16}}>
-            <div style={{width: "95%"}}>
-                <div style={{width: "100%", height: 800}}>
-                    <AgGridReact
-                        theme={tableTheme}
-                        columnDefs={colDefs}
-                        rowModelType="infinite"
-                        cacheBlockSize={50}
-                        maxBlocksInCache={2}
-                        pagination
-                        paginationPageSize={50}
-                        onGridReady={onGridReady}
-                        onFilterChanged={onFilterChanged}
-                        onSortChanged={onSortChanged}
-                        suppressMultiSort={false}
-                        defaultColDef={{filter: true, sortable: true, floatingFilter: true}}
-                    />
-                </div>
-            </div>
+        <div style={{minWidth: "100%", height: 600}}>
+            <AgGridReact
+                theme={tableTheme}
+                columnDefs={colDefs}
+                rowModelType="infinite"
+                cacheBlockSize={50}
+                maxBlocksInCache={2}
+                pagination
+                paginationPageSize={50}
+                onGridReady={onGridReady}
+                onFilterChanged={onFilterChanged}
+                onSortChanged={onSortChanged}
+                suppressMultiSort={false}
+                defaultColDef={{filter: true, sortable: true, floatingFilter: true}}
+            />
         </div>
     );
 }

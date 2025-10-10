@@ -37,7 +37,11 @@ export default function PersonTable({onOpenEditPersonModal, onReadyRefresh, onRe
             floatingFilter: true
         },
         {
-            headerName: "Edit", filter: false, width: 90,
+            headerName: "Edit",
+            filter: false,
+            floatingFilter: false,
+            sortable: false,
+            width: 90,
             cellRenderer: (p) => (
                 <button
                     style={{
@@ -84,11 +88,11 @@ export default function PersonTable({onOpenEditPersonModal, onReadyRefresh, onRe
         {
             headerName: "Vehicles",
             field: "vehiclesCount",
-            colId: "vehiclesCount",
+            // colId: "vehiclesCount",
             width: 130,
-            sortable: true,
-            filter: "agNumberColumnFilter",
-            floatingFilter: true
+            sortable: false,
+            filter: false,
+            floatingFilter: false
         },
     ]), [onOpenEditPersonModal]);
 
@@ -180,7 +184,7 @@ export default function PersonTable({onOpenEditPersonModal, onReadyRefresh, onRe
     }, []);
 
     return (
-        <div style={{width: "100%", height: 600}}>
+        <div style={{minWidth: "100%", height: 600}}>
             <AgGridReact
                 theme={personTableTheme}
                 columnDefs={colDefs}
