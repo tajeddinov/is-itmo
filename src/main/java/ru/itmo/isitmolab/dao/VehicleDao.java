@@ -123,7 +123,7 @@ public class VehicleDao {
     @SuppressWarnings("unchecked")
     private EntityGraph<Vehicle> getWithCoordsAdminGraph() {
         try {
-            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordsAdmin");
+            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinatesAdmin");
         } catch (IllegalArgumentException ex) {
             EntityGraph<Vehicle> g = em.createEntityGraph(Vehicle.class);
             g.addAttributeNodes("coordinates", "admin");

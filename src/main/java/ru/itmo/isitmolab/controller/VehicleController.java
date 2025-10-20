@@ -3,6 +3,7 @@ package ru.itmo.isitmolab.controller;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
@@ -29,11 +30,14 @@ public class VehicleController {
 
     @POST
     public Response createVehicle(@Valid VehicleDto dto) {
-        Long id = vehicleService.createNewVehicle(dto, request);
+        HttpSession session = request.getSession(false);
+        Long id = vehicleService.createNewVehicle(dto, session);
+
         return Response.status(Response.Status.CREATED)
                 .entity(Map.of("id", id))
                 .build();
     }
+
 
     @PUT
     @Path("/{id}")

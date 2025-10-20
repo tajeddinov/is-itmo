@@ -5,6 +5,9 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,4 +35,7 @@ public class Coordinates {
     @DecimalMax(value = "962")
     @Column(name = "y", nullable = false)
     private Float y;
+
+    @OneToMany(mappedBy = "coordinates", fetch = FetchType.LAZY)
+    private List<Vehicle> vehicles = new ArrayList<>();
 }

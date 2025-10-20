@@ -72,10 +72,4 @@ public class Vehicle {
             foreignKey = @ForeignKey(name = "vehicle_coordinates_id_fkey"))
     private Coordinates coordinates;
 
-    @PrePersist
-    void onCreate() {
-        if (creationTime == null) {
-            creationTime = LocalDateTime.now();
-        }
-    }
 }

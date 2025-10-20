@@ -23,9 +23,6 @@ public class CoordinatesController {
     @Inject
     CoordinatesService service;
 
-    @Context
-    HttpServletRequest request;
-
     @POST
     @Path("/query")
     public Response query(@Valid GridTableRequest req) {

@@ -3,6 +3,7 @@ package ru.itmo.isitmolab.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
@@ -40,8 +41,12 @@ public class VehicleService {
     @Inject
     private CoordinatesDao coordinatesDao;
 
-    public Long createNewVehicle(VehicleDto dto, HttpServletRequest req) {
-        Long adminId = sessionService.getCurrentUserId(req);
+    public Long createNewVehicle(VehicleDto dto, HttpSession session) {
+        Long adminId = sessionService.getCurrentUserId(session);
+        if (adminId == null) {
+            throw new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED);
+        }
+
         Admin admin = adminDao.findById(adminId)
                 .orElseThrow(() -> new WebApplicationException(
                         "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
@@ -56,6 +61,7 @@ public class VehicleService {
         wsHub.broadcastText("refresh");
         return v.getId();
     }
+
 
     public void updateVehicle(Long id, VehicleDto dto) {
         Vehicle current = dao.findById(id)
