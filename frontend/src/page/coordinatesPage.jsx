@@ -100,10 +100,14 @@ export default function CoordinatesPage() {
     };
 
     function validate() {
-        if (x === "" || x === null) return "Заполните X.";
-        if (y === "" || y === null) return "Заполните Y.";
-        if (isNaN(Number(x))) return "X должен быть числом.";
-        if (isNaN(Number(y))) return "Y должен быть числом.";
+        if (x === "" || x === null || x === undefined) return "Заполните X.";
+        if (y === "" || y === null || y === undefined) return "Заполните Y.";
+        const xNum = Number(x);
+        const yNum = Number(y);
+        if (!Number.isFinite(xNum)) return "X должен быть числом.";
+        if (!Number.isFinite(yNum)) return "Y должен быть числом.";
+        if (xNum > 613) return "X не должен превышать 613.";
+        if (yNum > 962) return "Y не должен превышать 962.";
         return null;
     }
 

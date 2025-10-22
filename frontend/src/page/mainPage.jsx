@@ -2,8 +2,19 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {
-    Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
-    Popover, PopoverContent, PopoverTrigger, Select, SelectItem, useDisclosure
+    Button,
+    Input,
+    Modal,
+    ModalBody,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+    Select,
+    SelectItem,
+    useDisclosure
 } from "@heroui/react";
 import {toast} from "sonner";
 import styles from "./mainPage.module.css";
@@ -20,6 +31,7 @@ export default function MainPage() {
     const navigate = useNavigate();
     const {setIsAuthed} = useAuthStore();
 
+    // null - новое, иначе - редактирование
     const [activeVehicle, setActiveVehicle] = useState(null);
 
     const [name, setName] = useState("");
@@ -31,17 +43,19 @@ export default function MainPage() {
     const [fuelConsumption, setFuelConsumption] = useState("");
     const [fuelType, setFuelType] = useState("");
 
-    const [coordinatesId, setCoordinatesId] = useState(null);
-    const [coordinatesObj, setCoordinatesObj] = useState(null);
+    const [coordinatesId, setCoordinatesId] = useState(null); // id
+    const [coordinatesObj, setCoordinatesObj] = useState(null); // объект x y из справочника
 
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
-    const [tableControls, setTableControls] = useState(null);
-    const [refreshGrid, setRefreshGrid] = useState(() => () => {});
+    const [tableControls, setTableControls] = useState(null); // объект интерфейса управления фильтрами таблицы
+    const [refreshGrid, setRefreshGrid] = useState(() => () => {
+    }); // функция перезагрузки данных таблицы
 
-    const wsRef = useRef(null);
-    const reconnectTimerRef = useRef(null);
+    const wsRef = useRef(null); // текущее соединение WebSocket
+    const reconnectTimerRef = useRef(null); // id таймера реконнекта
 
+    // url
     const WS_URL = useMemo(() => {
         try {
             const u = new URL(API_BASE);
@@ -55,27 +69,35 @@ export default function MainPage() {
         }
     }, []);
 
+    // ws с автопереподключением
     const connectWs = useCallback(() => {
-        if (wsRef.current?.readyState === WebSocket.OPEN ||
-            wsRef.current?.readyState === WebSocket.CONNECTING) return;
+        if (wsRef.current?.readyState === WebSocket.OPEN || wsRef.current?.readyState === WebSocket.CONNECTING)
+            return; // уже открыт или соединяется
 
-        let retry = 1000;
+        let retry = 1000; // ms
         const openSocket = () => {
             const ws = new WebSocket(WS_URL);
             wsRef.current = ws;
 
-            ws.onopen = () => { retry = 1000; };
+            ws.onopen = () => {
+                retry = 1000; // Соединение установлено - сброс интервала реконнекта
+            };
             ws.onmessage = (evt) => {
                 const msg = (evt.data || "").toString().trim();
                 if (msg === "refresh") refreshGrid?.();
             };
             ws.onclose = () => {
                 reconnectTimerRef.current = setTimeout(() => {
-                    retry = Math.min(retry * 2, 10000);
+                    retry = Math.min(retry * 2, 10000); // таймер реконнекта с увеличением интервала до 10 s
                     openSocket();
                 }, retry);
             };
-            ws.onerror = () => { try { ws.close(); } catch {} };
+            ws.onerror = () => {
+                try {
+                    ws.close();
+                } catch {
+                }
+            };
         };
 
         openSocket();
@@ -85,7 +107,10 @@ export default function MainPage() {
         connectWs();
         return () => {
             clearTimeout(reconnectTimerRef.current);
-            try { wsRef.current?.close(); } catch {}
+            try {
+                wsRef.current?.close();
+            } catch {
+            }
         };
     }, [connectWs]);
 
@@ -115,18 +140,18 @@ export default function MainPage() {
         setFuelConsumption(vehicle.fuelConsumption ?? "");
         setFuelType(vehicle.fuelType || "");
 
+        // вложенные координаты
         const nested = vehicle.coordinates ?? null;
-
         const flatX = vehicle.coordinatesX ?? vehicle.coordX ?? null;
         const flatY = vehicle.coordinatesY ?? vehicle.coordY ?? null;
-
         const coordId = vehicle.coordinatesId ?? nested?.id ?? null;
 
+        // сбор единого объекта координат
         let c = null;
         if (nested && (nested.x != null) && (nested.y != null)) {
-            c = { id: coordId ?? nested.id ?? null, x: nested.x, y: nested.y };
+            c = {id: coordId ?? nested.id ?? null, x: nested.x, y: nested.y};
         } else if (flatX != null && flatY != null) {
-            c = { id: coordId ?? null, x: flatX, y: flatY };
+            c = {id: coordId ?? null, x: flatX, y: flatY};
         }
 
         setCoordinatesId(c?.id ?? null);
@@ -134,7 +159,6 @@ export default function MainPage() {
 
         onOpen();
     };
-
 
     function validate() {
         if (!name.trim()) return "Заполните name.";
@@ -152,7 +176,8 @@ export default function MainPage() {
 
     const handleSave = async () => {
         const err = validate();
-        if (err) return toast.warning(err);
+        if (err)
+            return toast.warning(err);
 
         const payload = {
             id: activeVehicle?.id ?? null,
@@ -179,7 +204,6 @@ export default function MainPage() {
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify(payload),
             });
-
             if (res.ok) {
                 refreshGrid();
                 onOpenChange(false);
@@ -203,7 +227,9 @@ export default function MainPage() {
     };
 
     const handleDelete = async () => {
-        if (!activeVehicle?.id) return;
+        if (!activeVehicle?.id)
+            return;
+
         try {
             const res = await fetch(`${API_BASE}/api/vehicle/${activeVehicle.id}`, {
                 method: "DELETE",
@@ -216,7 +242,10 @@ export default function MainPage() {
                 return;
             }
             let errorData = {};
-            try { errorData = await res.json(); } catch {}
+            try {
+                errorData = await res.json();
+            } catch {
+            }
             toast.error(errorData.message || `Error: ${res.status}`);
         } catch (e) {
             console.error(e);
@@ -242,7 +271,7 @@ export default function MainPage() {
     const {isOpen: isPresetOpen, onOpen: onPresetOpen, onOpenChange: onPresetOpenChange} = useDisclosure();
 
     const [presetFuelGtCount, setPresetFuelGtCount] = useState("");
-    const [presetFuelGtList,  setPresetFuelGtList]  = useState("");
+    const [presetFuelGtList, setPresetFuelGtList] = useState("");
 
     const [presetType, setPresetType] = useState("");
     const [presetEngMin, setPresetEngMin] = useState("");
@@ -436,7 +465,8 @@ export default function MainPage() {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <Input type="number" label="Мощность двигателя" variant="bordered"
-                                           value={enginePower} onChange={(e) => setEnginePower(e.target.value)} min={0}/>
+                                           value={enginePower} onChange={(e) => setEnginePower(e.target.value)}
+                                           min={0}/>
                                     <Input type="number" label="Кол-во колёс" variant="bordered" value={numberOfWheels}
                                            onChange={(e) => setNumberOfWheels(e.target.value)} isRequired min={1}/>
                                 </div>
@@ -450,7 +480,8 @@ export default function MainPage() {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <Input type="number" label="Расход топлива" variant="bordered"
-                                           value={fuelConsumption} onChange={(e) => setFuelConsumption(e.target.value)} isRequired/>
+                                           value={fuelConsumption} onChange={(e) => setFuelConsumption(e.target.value)}
+                                           isRequired/>
                                     <Select label="Тип топлива" variant="bordered"
                                             selectedKeys={fuelType ? [fuelType] : []}
                                             onChange={(e) => setFuelType(e.target.value)} isRequired>

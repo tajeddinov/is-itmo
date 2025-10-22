@@ -49,7 +49,9 @@ export default function CoordinatesPicker({
         }
     };
 
-    useEffect(() => { fetchCoordinates(""); }, []);
+    useEffect(() => {
+        fetchCoordinates("");
+    }, []);
 
     useEffect(() => {
         clearTimeout(debounceRef.current);
@@ -100,7 +102,7 @@ export default function CoordinatesPicker({
                 ))}
             </datalist>
 
-            <input type="hidden" name="coordinatesId" value={selectedId || ""} required={required} />
+            <input type="hidden" name="coordinatesId" value={selectedId || ""} required={required}/>
         </div>
     );
 }

@@ -223,7 +223,7 @@ export default function VehicleTable({onOpenEditVehicleModal, onReadyRefresh, on
         if (!api) return;
 
         const clearSort = () => {
-            api.applyColumnState?.({ defaultState: { sort: null, sortIndex: null } });
+            api.applyColumnState?.({defaultState: {sort: null, sortIndex: null}});
             api.setGridOption?.('sortModel', null);
         };
 
@@ -248,13 +248,13 @@ export default function VehicleTable({onOpenEditVehicleModal, onReadyRefresh, on
                 const x = Number.parseFloat(raw);
                 if (!Number.isFinite(x)) return;
                 setAndGo({
-                    fuelConsumption: { filterType: "number", type: "greaterThan", filter: x },
+                    fuelConsumption: {filterType: "number", type: "greaterThan", filter: x},
                 });
             },
             applyFilterByType: (type) => {
                 if (!type) return;
                 setAndGo({
-                    type: { filterType: "text", type: "equals", filter: String(type) },
+                    type: {filterType: "text", type: "equals", filter: String(type)},
                 });
             },
             applyFilterEnginePowerRange: (rawMin, rawMax) => {
@@ -262,19 +262,19 @@ export default function VehicleTable({onOpenEditVehicleModal, onReadyRefresh, on
                 const max = Number.parseFloat(rawMax);
                 if (!Number.isFinite(min) || !Number.isFinite(max) || min > max) return;
                 setAndGo({
-                    enginePower: { filterType: "number", type: "inRange", filter: min, filterTo: max },
+                    enginePower: {filterType: "number", type: "inRange", filter: min, filterTo: max},
                 });
             },
             applyFilterByCoordinatesX: (xVal) => {
                 if (xVal === undefined || xVal === null || xVal === "") return;
                 setAndGo({
-                    "coordinates.x": { filterType: "number", type: "equals", filter: Number(xVal) },
+                    "coordinates.x": {filterType: "number", type: "equals", filter: Number(xVal)},
                 });
             },
             applyFilterByCoordinatesY: (yVal) => {
                 if (yVal === undefined || yVal === null || yVal === "") return;
                 setAndGo({
-                    "coordinates.y": { filterType: "number", type: "equals", filter: Number(yVal) },
+                    "coordinates.y": {filterType: "number", type: "equals", filter: Number(yVal)},
                 });
             },
         });

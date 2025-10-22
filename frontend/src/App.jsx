@@ -13,12 +13,14 @@ export default function App() {
     const {isAuthed, setIsAuthed} = useAuthStore();
 
     const PrivateRoute = ({children}) => {
-        if (isAuthed === null) return null;
+        if (isAuthed === null)
+            return null;
         return isAuthed ? children : <Navigate to="/login" replace/>;
     };
 
     const PublicRoute = ({children}) => {
-        if (isAuthed === null) return null;
+        if (isAuthed === null)
+            return null;
         return isAuthed ? <Navigate to="/" replace/> : children;
     };
 
