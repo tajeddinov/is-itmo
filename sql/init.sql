@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS admin
 (
-    id            BIGSERIAL PRIMARY KEY,
+    id            SERIAL PRIMARY KEY,
     login         TEXT      NOT NULL UNIQUE,
     pass_hash     TEXT      NOT NULL,
     salt          TEXT      NOT NULL,
@@ -8,14 +8,14 @@ CREATE TABLE IF NOT EXISTS admin
 );
 CREATE TABLE IF NOT EXISTS coordinates
 (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     x  DOUBLE PRECISION NOT NULL CHECK (x <= 613),
     y  REAL             NOT NULL CHECK (y <= 962),
     CONSTRAINT coordinates_xy_uniq UNIQUE (x, y)
 );
 CREATE TABLE IF NOT EXISTS vehicle
 (
-    id                 BIGSERIAL PRIMARY KEY,
+    id                 SERIAL PRIMARY KEY,
     name               TEXT             NOT NULL CHECK (length(btrim(name)) > 0),
     creation_time      TIMESTAMP        NOT NULL DEFAULT now(),
     type               TEXT             NOT NULL CHECK (type IN ('CAR', 'HELICOPTER', 'MOTORCYCLE', 'CHOPPER')),
