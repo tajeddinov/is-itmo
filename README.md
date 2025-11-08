@@ -2,15 +2,18 @@
 
 Вариант: 409664
 
+> Каждая лабораторная работа находится в своей отдельной ветке: lab1, lab2, lab3, lab4
+
 ## Технологический стек
 
-[![Java](https://img.shields.io/badge/Java-17-007396?logo=openjdk&style=flat-square)](https://adoptium.net/)
-[![Jakarta EE](https://img.shields.io/badge/Jakarta%20EE-11-2F5D88?logo=jakartaee&style=flat-square)](https://jakarta.ee/)
-[![Apache Tomcat](https://img.shields.io/badge/Tomcat-10.1-F8DC75?logo=apachetomcat&style=flat-square)](https://tomcat.apache.org/)
+[![Java](https://img.shields.io/badge/Java-17-blue?logo=openjdk&style=flat-square)](https://adoptium.net/)
+[![Jakarta EE](https://img.shields.io/badge/Jakarta%20EE-11-blue?logo=jakartaee&style=flat-square)](https://jakarta.ee/)
+[![WildFly](https://img.shields.io/badge/WildFly-37.0.1.Final-blue?logo=wildfly&style=flat-square)](https://www.wildfly.org/)
 
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES2023-F7DF1E?logo=javascript&style=flat-square)](https://developer.mozilla.org/docs/Web/JavaScript)
-[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&style=flat-square)](https://react.dev/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES262-blue?logo=javascript&style=flat-square)](https://developer.mozilla.org/docs/Web/JavaScript)
+[![React](https://img.shields.io/badge/React-19.1-blue?logo=react&style=flat-square)](https://react.dev/)
 
+[![Apache httpd](https://img.shields.io/badge/Apache%20httpd-2.4.62-blue?logo=apache&logoColor=white&style=flat-square)](https://httpd.apache.org/)
 
 ## Задание
 
@@ -41,13 +44,13 @@ public enum VehicleType {
     CAR,
     HELICOPTER,
     MOTORCYCLE,
-    CHOPPER;
+    CHOPPER
 }
 
 public enum FuelType {
     KEROSENE,
     MANPOWER,
-    NUCLEAR;
+    NUCLEAR
 }
 ```
 

@@ -1,5 +1,5 @@
 {
-  "name": "vite-project",
+  "name": "frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,18 +10,37 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@heroui/date-input": "^2.3.26",
+    "@heroui/react": "^2.8.1",
+    "@heroui/system": "^2.4.22",
+    "@heroui/theme": "^2.4.22",
+    "@internationalized/date": "^3.8.2",
+    "ag-grid-community": "^34.2.0",
+    "ag-grid-react": "^34.2.0",
+    "filepond": "^4.32.8",
+    "filepond-plugin-image-preview": "^4.6.12",
+    "framer-motion": "^12.23.7",
+    "lodash.debounce": "^4.0.8",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-filepond": "^7.1.3",
+    "react-router-dom": "^7.7.0",
+    "sonner": "^2.0.6",
+    "tailwindcss": "^4.0.0",
+    "vaul": "^1.1.2",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.36.0",
-    "@types/react": "^19.1.13",
-    "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react-swc": "^4.1.0",
-    "eslint": "^9.36.0",
+    "@eslint/js": "^9.30.1",
+    "@tailwindcss/postcss": "^4.1.11",
+    "@tailwindcss/vite": "^4.1.11",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react-swc": "^3.10.2",
+    "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.4.0",
-    "vite": "^7.1.7"
+    "globals": "^16.3.0",
+    "vite": "^7.0.4"
   }
 }

@@ -3,8 +3,12 @@ plugins {
     id 'war'
 }
 
-group 'ru.itmo'
-version '1.0-SNAPSHOT'
+group = 'ru.itmo'
+version = '1'
+
+tasks.named('war') {
+    archiveFileName = 'app.war'
+}
 
 repositories {
     mavenCentral()
@@ -14,19 +18,26 @@ ext {
     junitVersion = '5.11.0'
 }
 
-sourceCompatibility = '21'
-targetCompatibility = '21'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.release = 17
 }
 
 dependencies {
-    compileOnly('jakarta.platform:jakarta.jakartaee-web-api:11.0.0-M4')
+    compileOnly 'jakarta.platform:jakarta.jakartaee-web-api:11.0.0'
+//    implementation 'org.hibernate.orm:hibernate-core:6.6.1.Final'
+//    implementation 'org.postgresql:postgresql:42.7.4'
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
+
 
 test {
     useJUnitPlatform()

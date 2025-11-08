@@ -1,0 +1,29 @@
+.loginWrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loginForm {
+    width: 100%;
+    max-width: 28rem;
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.loginTitle {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    color: #000000;
+}
+
+.loginForm > * {
+    width: 100%;
+}
