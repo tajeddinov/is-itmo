@@ -10,13 +10,17 @@ import jakarta.ws.rs.core.Response;
 import ru.itmo.isitmolab.dao.AdminDao;
 import ru.itmo.isitmolab.dao.CoordinatesDao;
 import ru.itmo.isitmolab.dao.VehicleDao;
-import ru.itmo.isitmolab.dto.*;
+import ru.itmo.isitmolab.dao.VehicleImportOperationDao;
+import ru.itmo.isitmolab.dto.GridTableRequest;
+import ru.itmo.isitmolab.dto.GridTableResponse;
+import ru.itmo.isitmolab.dto.VehicleDto;
+import ru.itmo.isitmolab.dto.VehicleImportItemDto;
 import ru.itmo.isitmolab.model.Admin;
 import ru.itmo.isitmolab.model.Coordinates;
 import ru.itmo.isitmolab.model.Vehicle;
+import ru.itmo.isitmolab.model.VehicleImportOperation;
 import ru.itmo.isitmolab.ws.VehicleWsService;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +41,9 @@ public class VehicleService {
 
     @Inject
     private CoordinatesDao coordinatesDao;
+
+    @Inject
+    private VehicleImportOperationDao importOperationDao;
 
     @Transactional
     public Long createNewVehicle(VehicleDto dto, HttpSession session) {
@@ -136,6 +143,13 @@ public class VehicleService {
             v.setCoordinates(coords);
             dao.save(v);
         }
+
+        VehicleImportOperation op = new VehicleImportOperation();
+        op.setAdmin(admin);
+        op.setStatus(Boolean.TRUE);
+        op.setImportedCount(items.size());
+
+        importOperationDao.save(op);
 
         wsHub.broadcastText("refresh");
     }

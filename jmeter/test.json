@@ -54,5 +54,19 @@
       "x": 612.9,
       "y": 961.5
     }
+  },
+  {
+    "name": "5",
+    "type": "CHOPPER",
+    "enginePower": 120,
+    "numberOfWheels": 2,
+    "capacity": 1,
+    "distanceTravelled": 8000,
+    "fuelConsumption": 5.2,
+    "fuelType": "KEROSENE",
+    "coordinates": {
+      "x": 612.9,
+      "y": 961.5
+    }
   }
 ]

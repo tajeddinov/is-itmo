@@ -469,6 +469,34 @@ export default function MainPage() {
         }
     };
 
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    const openHistoryModal = async () => {
+        setIsHistoryOpen(true);
+        setHistoryLoading(true);
+        try {
+            const response = await fetch(`${API_BASE}/api/vehicle/import/history?limit=50`, {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                toast.error(`Ошибка загрузки истории: ${response.status}`);
+                return;
+            }
+
+            const data = await response.json();
+            setHistory(data);
+        } catch (err) {
+            console.error(err);
+            toast.error("Ошибка сети при загрузке истории");
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
     return (
         <>
             <div className={styles.totalwrapp}>
@@ -502,6 +530,13 @@ export default function MainPage() {
                             >
                                 Импорт JSON
                             </Button>
+                            <Button
+                                color="secondary"
+                                className={styles.control}
+                                onPress={openHistoryModal}
+                            >
+                                История
+                            </Button>
                         </div>
                     </div>
                     <div className={styles.right}>
@@ -526,6 +561,68 @@ export default function MainPage() {
                 onReadyRefresh={(fn) => setRefreshGrid(() => fn)}
                 onReadyControls={(controls) => setTableControls(controls)}
             />
+
+            <Modal
+                isOpen={isHistoryOpen}
+                onOpenChange={setIsHistoryOpen}
+                size="4xl"
+                scrollBehavior="inside"
+            >
+                <ModalContent>
+                    {onClose => (
+                        <>
+                            <ModalHeader className={styles.modalHeader}>
+                                История импорта
+                            </ModalHeader>
+                            <ModalBody>
+                                {historyLoading ? (
+                                    <div>Загрузка...</div>
+                                ) : history.length === 0 ? (
+                                    <div>История пуста</div>
+                                ) : (
+                                    <div className={styles.historyTableWrapper}>
+                                        <table className={styles.historyTable}>
+                                            <thead>
+                                            <tr>
+                                                <th>ID операции</th>
+                                                <th>Статус</th>
+                                                <th>Пользователь</th>
+                                                <th>Добавлено объектов</th>
+                                                <th>Дата/время</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {history.map((item) => (
+                                                <tr key={item.id}>
+                                                    <td>{item.id}</td>
+                                                    <td>{item.success ? "Успех" : "Ошибка"}</td>
+                                                    <td>{item.username}</td>
+                                                    <td>
+                                                        {item.success
+                                                            ? item.importedCount
+                                                            : "-"}
+                                                    </td>
+                                                    <td>
+                                                        {item.creationTime
+                                                            ? new Date(item.creationTime).toLocaleString()
+                                                            : ""}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button variant="light" onPress={onClose}>
+                                    Закрыть
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
 
             <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false}>
                 <ModalContent className={styles.postModalBody}>

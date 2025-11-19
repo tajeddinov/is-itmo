@@ -1,11 +1,21 @@
 package ru.itmo.isitmolab.util;
 
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;              // <-- ВАЖНО
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import ru.itmo.isitmolab.dao.AdminDao;
+import ru.itmo.isitmolab.dao.VehicleImportOperationDao;
+import ru.itmo.isitmolab.model.Admin;
+import ru.itmo.isitmolab.model.VehicleImportOperation;
+import ru.itmo.isitmolab.service.SessionService;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,9 +23,26 @@ import java.util.stream.Collectors;
 @Provider
 public class ConstraintViolationExceptionMapper implements ExceptionMapper<ConstraintViolationException> {
 
+    @Inject
+    private VehicleImportOperationDao importOperationDao;
+
+    @Inject
+    private AdminDao adminDao;
+
+    @Inject
+    private SessionService sessionService;
+
+    @Context
+    private HttpServletRequest request;
+
     @Override
+    @Transactional   // <-- ДОБАВЛЯЕМ ТРАНЗАКЦИЮ НА ВЕСЬ МЕТОД
     public Response toResponse(ConstraintViolationException exception) {
 
+        // 1) Логируем неуспешную операцию импорта (если это тот самый endpoint)
+        logFailedImportIfNeeded();
+
+        // 2) Формируем тело ответа как раньше
         List<RowError> errors = exception.getConstraintViolations().stream()
                 .map(this::toRowError)
                 .collect(Collectors.toList());
@@ -31,14 +58,38 @@ public class ConstraintViolationExceptionMapper implements ExceptionMapper<Const
                 .build();
     }
 
+    private void logFailedImportIfNeeded() {
+        if (request == null) return;
+
+        String uri = request.getRequestURI(); // /app/api/vehicle/import
+        if (uri == null || !uri.contains("/api/vehicle/import")) {
+            return; // не наш эндпоинт — ничего не логируем
+        }
+
+        HttpSession session = request.getSession(false);
+        Long adminId = sessionService.getCurrentUserId(session);
+        if (adminId == null) {
+            return;
+        }
+
+        Admin admin = adminDao.findById(adminId).orElse(null);
+        if (admin == null) {
+            return;
+        }
+
+        VehicleImportOperation op = new VehicleImportOperation();
+        op.setAdmin(admin);
+        op.setStatus(Boolean.FALSE); // неуспешная операция
+        op.setImportedCount(null);   // по ТЗ число только для SUCCESS
+
+        importOperationDao.save(op); // теперь есть активная транзакция
+    }
+
     private RowError toRowError(ConstraintViolation<?> v) {
         String path = v.getPropertyPath().toString();
-        // Примеры path:
-        //  - "importVehicles.arg0[0].name"
-        //  - "importVehicles.items[2].fuelType"
         Integer rowNumber = extractIndex(path); // может быть null, если индекса нет
         String field = path;
-        String message = v.getMessage(); // <-- ТУТ как раз message из аннотаций DTO
+        String message = v.getMessage(); // <-- message из аннотаций DTO
 
         return new RowError(rowNumber, field, message);
     }

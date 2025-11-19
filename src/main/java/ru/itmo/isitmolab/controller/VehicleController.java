@@ -12,6 +12,8 @@ import jakarta.ws.rs.core.Response;
 import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.dto.VehicleDto;
 import ru.itmo.isitmolab.dto.VehicleImportItemDto;
+import ru.itmo.isitmolab.service.SessionService;
+import ru.itmo.isitmolab.service.VehicleImportHistoryService;
 import ru.itmo.isitmolab.service.VehicleService;
 
 import java.util.List;
@@ -25,6 +27,12 @@ public class VehicleController {
 
     @Inject
     VehicleService vehicleService;
+
+    @Inject
+    VehicleImportHistoryService importHistoryService;
+
+    @Inject
+    SessionService sessionService;
 
     @Context
     HttpServletRequest request;
@@ -71,6 +79,19 @@ public class VehicleController {
     public Response importVehicles(@Valid List<@Valid VehicleImportItemDto> items) {
         vehicleService.importVehicles(items, request.getSession(false));
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/import/history")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getImportHistory(
+            @QueryParam("limit") @DefaultValue("50") int limit
+    ) {
+        HttpSession session = request.getSession(false);
+        Long adminId = sessionService.getCurrentUserId(session);
+
+        var history = importHistoryService.getHistoryForAdmin(adminId, limit);
+        return Response.ok(history).build();
     }
 
 }

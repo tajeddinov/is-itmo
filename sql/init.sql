@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS admin
 (
-    id            SERIAL PRIMARY KEY,
+    id            BIGSERIAL PRIMARY KEY,
     login         TEXT      NOT NULL UNIQUE,
     pass_hash     TEXT      NOT NULL,
     salt          TEXT      NOT NULL,
@@ -8,39 +8,34 @@ CREATE TABLE IF NOT EXISTS admin
 );
 CREATE TABLE IF NOT EXISTS coordinates
 (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     x  DOUBLE PRECISION NOT NULL CHECK (x <= 613),
     y  REAL             NOT NULL CHECK (y <= 962),
     CONSTRAINT coordinates_xy_uniq UNIQUE (x, y)
 );
 CREATE TABLE IF NOT EXISTS vehicle
 (
-    id                 SERIAL PRIMARY KEY,
-    name               TEXT             NOT NULL CHECK (length(btrim(name)) > 0),
-    creation_time      TIMESTAMP        NOT NULL DEFAULT now(),
-    type               TEXT             NOT NULL CHECK (type IN ('CAR', 'HELICOPTER', 'MOTORCYCLE', 'CHOPPER')),
-    engine_power       INTEGER          CHECK (engine_power IS NULL OR engine_power > 0),
-    number_of_wheels   INTEGER          NOT NULL CHECK (number_of_wheels > 0),
-    capacity           INTEGER          CHECK (capacity IS NULL OR capacity > 0),
-    distance_travelled INTEGER          CHECK (distance_travelled IS NULL OR distance_travelled > 0),
-    fuel_consumption   REAL             NOT NULL CHECK (fuel_consumption > 0),
-    fuel_type          TEXT             NOT NULL CHECK (fuel_type IN ('KEROSENE', 'MANPOWER', 'NUCLEAR')),
-    admin_id           BIGINT           NOT NULL REFERENCES admin (id) ON DELETE RESTRICT,
-    coordinates_id     BIGINT           NOT NULL REFERENCES coordinates (id) ON DELETE RESTRICT
+    id                 BIGSERIAL PRIMARY KEY,
+    name               TEXT      NOT NULL CHECK (length(btrim(name)) > 0),
+    creation_time      TIMESTAMP NOT NULL DEFAULT now(),
+    type               TEXT      NOT NULL CHECK (type IN ('CAR', 'HELICOPTER', 'MOTORCYCLE', 'CHOPPER')),
+    engine_power       INTEGER CHECK (engine_power IS NULL OR engine_power > 0),
+    number_of_wheels   INTEGER   NOT NULL CHECK (number_of_wheels > 0),
+    capacity           INTEGER CHECK (capacity IS NULL OR capacity > 0),
+    distance_travelled INTEGER CHECK (distance_travelled IS NULL OR distance_travelled > 0),
+    fuel_consumption   REAL      NOT NULL CHECK (fuel_consumption > 0),
+    fuel_type          TEXT      NOT NULL CHECK (fuel_type IN ('KEROSENE', 'MANPOWER', 'NUCLEAR')),
+    admin_id           BIGINT    NOT NULL REFERENCES admin (id) ON DELETE RESTRICT,
+    coordinates_id     BIGINT    NOT NULL REFERENCES coordinates (id) ON DELETE RESTRICT
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
+CREATE TABLE IF NOT EXISTS vehicle_import_operation
+(
+    id             BIGSERIAL PRIMARY KEY,
+    admin_id       BIGINT    NOT NULL REFERENCES admin (id) ON DELETE RESTRICT,
+    status         BOOLEAN,
+    imported_count INTEGER,
+    creation_time  TIMESTAMP NOT NULL DEFAULT now()
+);
 
 
 
