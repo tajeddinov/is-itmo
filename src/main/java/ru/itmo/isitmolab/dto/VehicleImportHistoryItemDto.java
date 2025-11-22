@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.itmo.isitmolab.model.VehicleImportOperation;
 
 import java.time.LocalDateTime;
 
@@ -17,4 +18,18 @@ public class VehicleImportHistoryItemDto {
     private String username;
     private Integer importedCount;
     private LocalDateTime creationTime;
+
+    public static VehicleImportHistoryItemDto toDto(VehicleImportOperation op) {
+        String username = op.getAdmin().getLogin();
+
+        boolean success = Boolean.TRUE.equals(op.getStatus());
+
+        return VehicleImportHistoryItemDto.builder()
+                .id(op.getId())
+                .success(success)
+                .username(username)
+                .importedCount(success ? op.getImportedCount() : null)
+                .creationTime(op.getCreationTime())
+                .build();
+    }
 }

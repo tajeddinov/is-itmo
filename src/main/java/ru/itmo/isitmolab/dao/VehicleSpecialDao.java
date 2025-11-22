@@ -14,8 +14,6 @@ public class VehicleSpecialDao {
     @PersistenceContext(unitName = "studsPU")
     EntityManager em;
 
-    /* графы и загрузка */
-
     @SuppressWarnings("unchecked")
     private EntityGraph<Vehicle> graph() {
         try {

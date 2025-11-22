@@ -36,7 +36,7 @@ public class ConstraintViolationExceptionMapper implements ExceptionMapper<Const
     private HttpServletRequest request;
 
     @Override
-    @Transactional   // <-- ДОБАВЛЯЕМ ТРАНЗАКЦИЮ НА ВЕСЬ МЕТОД
+    @Transactional
     public Response toResponse(ConstraintViolationException exception) {
 
         // 1) Логируем неуспешную операцию импорта (если это тот самый endpoint)

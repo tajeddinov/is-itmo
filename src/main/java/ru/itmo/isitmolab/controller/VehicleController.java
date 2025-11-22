@@ -13,7 +13,6 @@ import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.dto.VehicleDto;
 import ru.itmo.isitmolab.dto.VehicleImportItemDto;
 import ru.itmo.isitmolab.service.SessionService;
-import ru.itmo.isitmolab.service.VehicleImportHistoryService;
 import ru.itmo.isitmolab.service.VehicleService;
 
 import java.util.List;
@@ -27,9 +26,6 @@ public class VehicleController {
 
     @Inject
     VehicleService vehicleService;
-
-    @Inject
-    VehicleImportHistoryService importHistoryService;
 
     @Inject
     SessionService sessionService;
@@ -84,13 +80,11 @@ public class VehicleController {
     @GET
     @Path("/import/history")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getImportHistory(
-            @QueryParam("limit") @DefaultValue("50") int limit
-    ) {
+    public Response getImportHistory(@QueryParam("limit") @DefaultValue("50") int limit) {
         HttpSession session = request.getSession(false);
         Long adminId = sessionService.getCurrentUserId(session);
 
-        var history = importHistoryService.getHistoryForAdmin(adminId, limit);
+        var history = vehicleService.getHistoryForAdmin(adminId, limit);
         return Response.ok(history).build();
     }
 

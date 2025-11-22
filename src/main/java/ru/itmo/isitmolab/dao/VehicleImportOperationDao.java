@@ -31,14 +31,4 @@ public class VehicleImportOperationDao {
                 .getResultList();
     }
 
-    public List<VehicleImportOperation> findLastAll(int limit) {
-        return em.createQuery(
-                        "SELECT o FROM VehicleImportOperation o " +
-                                "ORDER BY o.creationTime DESC",
-                        VehicleImportOperation.class
-                )
-                .setMaxResults(limit)
-                .getResultList();
-    }
-
 }

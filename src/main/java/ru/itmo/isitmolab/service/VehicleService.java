@@ -11,10 +11,7 @@ import ru.itmo.isitmolab.dao.AdminDao;
 import ru.itmo.isitmolab.dao.CoordinatesDao;
 import ru.itmo.isitmolab.dao.VehicleDao;
 import ru.itmo.isitmolab.dao.VehicleImportOperationDao;
-import ru.itmo.isitmolab.dto.GridTableRequest;
-import ru.itmo.isitmolab.dto.GridTableResponse;
-import ru.itmo.isitmolab.dto.VehicleDto;
-import ru.itmo.isitmolab.dto.VehicleImportItemDto;
+import ru.itmo.isitmolab.dto.*;
 import ru.itmo.isitmolab.model.Admin;
 import ru.itmo.isitmolab.model.Coordinates;
 import ru.itmo.isitmolab.model.Vehicle;
@@ -23,6 +20,7 @@ import ru.itmo.isitmolab.ws.VehicleWsService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class VehicleService {
@@ -44,6 +42,7 @@ public class VehicleService {
 
     @Inject
     private VehicleImportOperationDao importOperationDao;
+
 
     @Transactional
     public Long createNewVehicle(VehicleDto dto, HttpSession session) {
@@ -153,4 +152,12 @@ public class VehicleService {
 
         wsHub.broadcastText("refresh");
     }
+
+    public List<VehicleImportHistoryItemDto> getHistoryForAdmin(Long adminId, int limit) {
+        return importOperationDao.findLastForAdmin(adminId, limit)
+                .stream()
+                .map(VehicleImportHistoryItemDto::toDto)
+                .collect(Collectors.toList());
+    }
+
 }
