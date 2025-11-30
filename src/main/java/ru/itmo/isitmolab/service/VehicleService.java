@@ -46,19 +46,19 @@ public class VehicleService {
 
     @Transactional
     public Long createNewVehicle(VehicleDto dto, HttpSession session) {
-        Long adminId = sessionService.getCurrentUserId(session);
-        if (adminId == null) {
-            throw new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED);
-        }
+        // Long adminId = sessionService.getCurrentUserId(session);
+        // if (adminId == null) {
+        //     throw new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED);
+        // }
 
-        Admin admin = adminDao.findById(adminId)
-                .orElseThrow(() -> new WebApplicationException(
-                        "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
+        // Admin admin = adminDao.findById(adminId)
+        //         .orElseThrow(() -> new WebApplicationException(
+        //                 "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
 
         Coordinates coords = resolveCoordinatesForDto(dto);
 
         Vehicle v = VehicleDto.toEntity(dto, null);
-        v.setAdmin(admin);
+        // v.setAdmin(admin);
         v.setCoordinates(coords);
 
         dao.save(v);
@@ -128,27 +128,27 @@ public class VehicleService {
 
     @Transactional
     public void importVehicles(List<VehicleImportItemDto> items, HttpSession session) {
-        Long adminId = sessionService.getCurrentUserId(session);
+        // Long adminId = sessionService.getCurrentUserId(session);
 
-        Admin admin = adminDao.findById(adminId)
-                .orElseThrow(() -> new WebApplicationException(
-                        "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
+        // Admin admin = adminDao.findById(adminId)
+        //         .orElseThrow(() -> new WebApplicationException(
+        //                 "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
 
         for (VehicleImportItemDto item : items) {
             VehicleDto dto = VehicleImportItemDto.toEntity(item);
             Coordinates coords = resolveCoordinatesForDto(dto);
             Vehicle v = VehicleDto.toEntity(dto, null);
-            v.setAdmin(admin);
+            // v.setAdmin(admin);
             v.setCoordinates(coords);
             dao.save(v);
         }
 
-        VehicleImportOperation op = new VehicleImportOperation();
-        op.setAdmin(admin);
-        op.setStatus(Boolean.TRUE);
-        op.setImportedCount(items.size());
+        // VehicleImportOperation op = new VehicleImportOperation();
+        // op.setAdmin(admin);
+        // op.setStatus(Boolean.TRUE);
+        // op.setImportedCount(items.size());
 
-        importOperationDao.save(op);
+        // importOperationDao.save(op);
 
         wsHub.broadcastText("refresh");
     }

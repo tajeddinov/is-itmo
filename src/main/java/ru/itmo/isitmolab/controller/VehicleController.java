@@ -81,11 +81,12 @@ public class VehicleController {
     @Path("/import/history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getImportHistory(@QueryParam("limit") @DefaultValue("50") int limit) {
-        HttpSession session = request.getSession(false);
-        Long adminId = sessionService.getCurrentUserId(session);
+        // HttpSession session = request.getSession(false);
+        // Long adminId = sessionService.getCurrentUserId(session);
 
-        var history = vehicleService.getHistoryForAdmin(adminId, limit);
-        return Response.ok(history).build();
+        // var history = vehicleService.getHistoryForAdmin(adminId, limit);
+        // return Response.ok(history).build();
+        return Response.ok(List.of()).build(); // возвращаем пустой список, так как авторизация отключена
     }
 
 }

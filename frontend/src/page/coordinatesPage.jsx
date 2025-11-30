@@ -17,14 +17,14 @@ import {
 import {toast} from "sonner";
 import styles from "./mainPage.module.css";
 import {useNavigate} from "react-router-dom";
-import useAuthStore from "../store/auth.js";
+// import useAuthStore from "../store/auth.js";
 import {API_BASE} from "../../cfg.js";
 import CoordinatesTable from "../component/coordinatesTable.jsx";
 import CoordinatesPicker from "../component/CoordinatesPicker.jsx";
 
 export default function CoordinatesPage() {
     const navigate = useNavigate();
-    const {setIsAuthed} = useAuthStore();
+    // const {setIsAuthed} = useAuthStore();
 
     // null - новое, иначе - редактирование
     const [activeCoordinates, setActiveCoordinates] = useState(null);
@@ -238,20 +238,20 @@ export default function CoordinatesPage() {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/auth/logout`, {
-                method: "POST",
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-            setIsAuthed(false);
-            navigate("/login", {replace: true});
-            toast.success("Вы вышли из аккаунта");
-        } catch (err) {
-            toast.error("Не удалось выйти: " + (err.message || ""));
-        }
-    };
+    // const handleLogout = async () => {
+    //     try {
+    //         const res = await fetch(`${API_BASE}/api/auth/logout`, {
+    //             method: "POST",
+    //             credentials: "include",
+    //         });
+    //         if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    //         setIsAuthed(false);
+    //         navigate("/login", {replace: true});
+    //         toast.success("Вы вышли из аккаунта");
+    //     } catch (err) {
+    //         toast.error("Не удалось выйти: " + (err.message || ""));
+    //     }
+    // };
 
     const handleResetFilters = () => {
         tableControls?.clearFilters();
@@ -279,7 +279,7 @@ export default function CoordinatesPage() {
                             </Button>
                         </div>
                     </div>
-                    <div className={styles.right}>
+                    {/* <div className={styles.right}>
                         <Popover placement="bottom-end" showArrow>
                             <PopoverTrigger>
                                 <div className={styles.profileWrapp}>
@@ -292,7 +292,7 @@ export default function CoordinatesPage() {
                                 <Button color="danger" onPress={handleLogout}>Выход</Button>
                             </PopoverContent>
                         </Popover>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 

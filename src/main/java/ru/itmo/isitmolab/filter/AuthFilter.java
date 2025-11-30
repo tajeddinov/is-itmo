@@ -32,19 +32,19 @@ public class AuthFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (path.contains("auth")) {
-            return;
-        }
+        // if (path.contains("auth")) {
+        //     return;
+        // }
 
-        boolean ok = sessionService.isActive(request.getSession(false));
+        // boolean ok = sessionService.isActive(request.getSession(false));
 
-        if (!ok) {
-            ctx.abortWith(
-                    Response.status(Response.Status.UNAUTHORIZED)
-                            .entity(Map.of("message", "Unauthorized"))
-                            .build()
-            );
-        }
+        // if (!ok) {
+        //     ctx.abortWith(
+        //             Response.status(Response.Status.UNAUTHORIZED)
+        //                     .entity(Map.of("message", "Unauthorized"))
+        //                     .build()
+        //     );
+        // }
     }
 
 }

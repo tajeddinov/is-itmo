@@ -59,30 +59,30 @@ public class ConstraintViolationExceptionMapper implements ExceptionMapper<Const
     }
 
     private void logFailedImportIfNeeded() {
-        if (request == null) return;
+        // if (request == null) return;
 
-        String uri = request.getRequestURI(); // /app/api/vehicle/import
-        if (uri == null || !uri.contains("/api/vehicle/import")) {
-            return; // не наш эндпоинт — ничего не логируем
-        }
+        // String uri = request.getRequestURI(); // /app/api/vehicle/import
+        // if (uri == null || !uri.contains("/api/vehicle/import")) {
+        //     return; // не наш эндпоинт — ничего не логируем
+        // }
 
-        HttpSession session = request.getSession(false);
-        Long adminId = sessionService.getCurrentUserId(session);
-        if (adminId == null) {
-            return;
-        }
+        // HttpSession session = request.getSession(false);
+        // Long adminId = sessionService.getCurrentUserId(session);
+        // if (adminId == null) {
+        //     return;
+        // }
 
-        Admin admin = adminDao.findById(adminId).orElse(null);
-        if (admin == null) {
-            return;
-        }
+        // Admin admin = adminDao.findById(adminId).orElse(null);
+        // if (admin == null) {
+        //     return;
+        // }
 
-        VehicleImportOperation op = new VehicleImportOperation();
-        op.setAdmin(admin);
-        op.setStatus(Boolean.FALSE); // неуспешная операция
-        op.setImportedCount(null);   // по ТЗ число только для SUCCESS
+        // VehicleImportOperation op = new VehicleImportOperation();
+        // op.setAdmin(admin);
+        // op.setStatus(Boolean.FALSE); // неуспешная операция
+        // op.setImportedCount(null);   // по ТЗ число только для SUCCESS
 
-        importOperationDao.save(op); // теперь есть активная транзакция
+        // importOperationDao.save(op); // теперь есть активная транзакция
     }
 
     private RowError toRowError(ConstraintViolation<?> v) {

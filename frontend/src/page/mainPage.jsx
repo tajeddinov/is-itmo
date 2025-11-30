@@ -19,7 +19,7 @@ import {
 import {toast} from "sonner";
 import styles from "./mainPage.module.css";
 import {useNavigate} from "react-router-dom";
-import useAuthStore from "../store/auth.js";
+// import useAuthStore from "../store/auth.js";
 import {API_BASE} from "../../cfg.js";
 import VehicleTable from "../component/vehicleTable.jsx";
 import CoordinatesPicker from "../component/CoordinatesPicker.jsx";
@@ -29,7 +29,7 @@ const FUEL_TYPES = ["KEROSENE", "MANPOWER", "NUCLEAR"];
 
 export default function MainPage() {
     const navigate = useNavigate();
-    const {setIsAuthed} = useAuthStore();
+    // const {setIsAuthed} = useAuthStore();
 
     // null - новое, иначе - редактирование
     const [activeVehicle, setActiveVehicle] = useState(null);
@@ -210,10 +210,10 @@ export default function MainPage() {
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 switch (res.status) {
-                    case 401:
-                        setIsAuthed(false);
-                        toast.error(errorData.message || 'Not correct credentials');
-                        break;
+                    // case 401:
+                    //     setIsAuthed(false);
+                    //     toast.error(errorData.message || 'Not correct credentials');
+                    //     break;
                     default:
                         toast.error(errorData.message || `Error: ${res.status} - ${res.statusText}`);
                         break;
@@ -252,20 +252,20 @@ export default function MainPage() {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/auth/logout`, {
-                method: "POST",
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-            setIsAuthed(false);
-            navigate("/login", {replace: true});
-            toast.success("Вы вышли из аккаунта");
-        } catch (err) {
-            toast.error("Не удалось выйти: " + (err.message || ""));
-        }
-    };
+    // const handleLogout = async () => {
+    //     try {
+    //         const res = await fetch(`${API_BASE}/api/auth/logout`, {
+    //             method: "POST",
+    //             credentials: "include",
+    //         });
+    //         if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    //         setIsAuthed(false);
+    //         navigate("/login", {replace: true});
+    //         toast.success("Вы вышли из аккаунта");
+    //     } catch (err) {
+    //         toast.error("Не удалось выйти: " + (err.message || ""));
+    //     }
+    // };
 
     const {isOpen: isPresetOpen, onOpen: onPresetOpen, onOpenChange: onPresetOpenChange} = useDisclosure();
 
@@ -434,10 +434,11 @@ export default function MainPage() {
                 // тело не JSON - null
             }
 
-            if (response.status === 401) {
-                setIsAuthed(false);
-                toast.error("Not correct credentials");
-            } else if (response.status === 400 && errorBody) {
+            // if (response.status === 401) {
+            //     setIsAuthed(false);
+            //     toast.error("Not correct credentials");
+            // } else 
+            if (response.status === 400 && errorBody) {
                 if (Array.isArray(errorBody.errors) && errorBody.errors.length > 0) {
                     const lines = errorBody.errors.map(err => {
                         const rowPart = err.rowNumber != null
@@ -539,7 +540,7 @@ export default function MainPage() {
                             </Button>
                         </div>
                     </div>
-                    <div className={styles.right}>
+                    {/* <div className={styles.right}>
                         <Popover placement="bottom-end" showArrow>
                             <PopoverTrigger>
                                 <div className={styles.profileWrapp}>
@@ -552,7 +553,7 @@ export default function MainPage() {
                                 <Button color="danger" onPress={handleLogout}>Выход</Button>
                             </PopoverContent>
                         </Popover>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 

@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @NamedEntityGraph(
         name = "Vehicle.withCoordinatesAdmin",
         attributeNodes = {
-                @NamedAttributeNode("coordinates"),
-                @NamedAttributeNode("admin")
+                @NamedAttributeNode("coordinates")
+                // @NamedAttributeNode("admin")
         }
 )
 @Getter
@@ -64,8 +64,11 @@ public class Vehicle {
     @Column(name = "fuel_type", nullable = false)
     private FuelType fuelType;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = false)
+    // @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    // @JoinColumn(name = "admin_id", nullable = false)
+    // private Admin admin;
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = true)
     private Admin admin;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)

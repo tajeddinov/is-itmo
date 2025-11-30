@@ -20,7 +20,8 @@ public class VehicleImportHistoryItemDto {
     private LocalDateTime creationTime;
 
     public static VehicleImportHistoryItemDto toDto(VehicleImportOperation op) {
-        String username = op.getAdmin().getLogin();
+        // String username = op.getAdmin().getLogin();
+        String username = op.getAdmin() != null ? op.getAdmin().getLogin() : null;
 
         boolean success = Boolean.TRUE.equals(op.getStatus());
 
