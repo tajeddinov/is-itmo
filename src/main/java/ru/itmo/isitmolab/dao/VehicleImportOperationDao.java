@@ -17,16 +17,26 @@ public class VehicleImportOperationDao {
         em.persist(op);
     }
 
-    public List<VehicleImportOperation> findLastForAdmin(Long adminId, int limit) {
+    // public List<VehicleImportOperation> findLastForAdmin(Long adminId, int limit) {
+    //     return em.createQuery(
+    //                     "SELECT o " +
+    //                             "FROM VehicleImportOperation o " +
+    //                             "JOIN FETCH o.admin " +
+    //                             "WHERE o.admin.id = :adminId " +
+    //                             "ORDER BY o.creationTime DESC",
+    //                     VehicleImportOperation.class
+    //             )
+    //             .setParameter("adminId", adminId)
+    //             .setMaxResults(limit)
+    //             .getResultList();
+    // }
+    public List<VehicleImportOperation> findLastForAdmin(int limit) {
         return em.createQuery(
                         "SELECT o " +
                                 "FROM VehicleImportOperation o " +
-                                "JOIN FETCH o.admin " +
-                                "WHERE o.admin.id = :adminId " +
                                 "ORDER BY o.creationTime DESC",
                         VehicleImportOperation.class
                 )
-                .setParameter("adminId", adminId)
                 .setMaxResults(limit)
                 .getResultList();
     }

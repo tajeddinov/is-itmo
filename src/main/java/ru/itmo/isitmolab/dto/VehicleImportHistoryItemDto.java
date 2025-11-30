@@ -20,15 +20,12 @@ public class VehicleImportHistoryItemDto {
     private LocalDateTime creationTime;
 
     public static VehicleImportHistoryItemDto toDto(VehicleImportOperation op) {
-        // String username = op.getAdmin().getLogin();
-        String username = op.getAdmin() != null ? op.getAdmin().getLogin() : null;
 
         boolean success = Boolean.TRUE.equals(op.getStatus());
 
         return VehicleImportHistoryItemDto.builder()
                 .id(op.getId())
                 .success(success)
-                .username(username)
                 .importedCount(success ? op.getImportedCount() : null)
                 .creationTime(op.getCreationTime())
                 .build();

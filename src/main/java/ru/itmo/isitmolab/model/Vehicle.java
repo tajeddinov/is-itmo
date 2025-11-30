@@ -9,10 +9,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @NamedEntityGraph(
-        name = "Vehicle.withCoordinatesAdmin",
+        name = "Vehicle.withCoordinates",
         attributeNodes = {
                 @NamedAttributeNode("coordinates")
-                // @NamedAttributeNode("admin")
         }
 )
 @Getter
@@ -63,13 +62,6 @@ public class Vehicle {
     @Enumerated(EnumType.STRING)
     @Column(name = "fuel_type", nullable = false)
     private FuelType fuelType;
-
-    // @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    // @JoinColumn(name = "admin_id", nullable = false)
-    // private Admin admin;
-    @ManyToOne(optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id", nullable = true)
-    private Admin admin;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "coordinates_id", nullable = false)

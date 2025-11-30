@@ -17,15 +17,15 @@ public class VehicleSpecialDao {
     @SuppressWarnings("unchecked")
     private EntityGraph<Vehicle> graph() {
         try {
-            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinatesAdmin");
+            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinates");
         } catch (IllegalArgumentException ex) {
             EntityGraph<Vehicle> g = em.createEntityGraph(Vehicle.class);
-            g.addAttributeNodes("coordinates", "admin");
+            g.addAttributeNodes("coordinates");
             return g;
         }
     }
 
-    // Загрузить одну сущность Vehicle по id с нужным графом (coordinates, admin).
+    // Загрузить одну сущность Vehicle по id с нужным графом (coordinates).
     public Optional<Vehicle> loadOneWithGraph(Long id) {
         if (id == null) return Optional.empty();
         Map<String, Object> hints = Map.of("jakarta.persistence.loadgraph", graph());

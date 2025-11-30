@@ -87,9 +87,9 @@ public class VehicleDao {
             return List.of();
 
         // грузим полноценные сущности по найденным id с графом
-        EntityGraph<Vehicle> graph = getWithCoordsAdminGraph();
+        EntityGraph<Vehicle> graph = getWithCoordsGraph();
 
-        // подтягивает объекты Vehicle с нужными связями (через EntityGraph: coordinates, admin)
+        // подтягивает объекты Vehicle с нужными связями (через EntityGraph: coordinates)
         List<Vehicle> items = em.createQuery(
                         "select v from Vehicle v where v.id in :ids", Vehicle.class)
                 .setParameter("ids", ids)
@@ -120,12 +120,12 @@ public class VehicleDao {
     }
 
     @SuppressWarnings("unchecked")
-    private EntityGraph<Vehicle> getWithCoordsAdminGraph() {
+    private EntityGraph<Vehicle> getWithCoordsGraph() {
         try {
-            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinatesAdmin");
+            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinates");
         } catch (IllegalArgumentException ex) {
             EntityGraph<Vehicle> g = em.createEntityGraph(Vehicle.class);
-            g.addAttributeNodes("coordinates", "admin");
+            g.addAttributeNodes("coordinates");
             return g;
         }
     }

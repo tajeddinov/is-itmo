@@ -1,11 +1,3 @@
-CREATE TABLE IF NOT EXISTS admin
-(
-    id            BIGSERIAL PRIMARY KEY,
-    login         TEXT      NOT NULL UNIQUE,
-    pass_hash     TEXT      NOT NULL,
-    salt          TEXT      NOT NULL,
-    creation_time TIMESTAMP NOT NULL DEFAULT now()
-);
 CREATE TABLE IF NOT EXISTS coordinates
 (
     id BIGSERIAL PRIMARY KEY,
@@ -25,13 +17,11 @@ CREATE TABLE IF NOT EXISTS vehicle
     distance_travelled INTEGER CHECK (distance_travelled IS NULL OR distance_travelled > 0),
     fuel_consumption   REAL      NOT NULL CHECK (fuel_consumption > 0),
     fuel_type          TEXT      NOT NULL CHECK (fuel_type IN ('KEROSENE', 'MANPOWER', 'NUCLEAR')),
-    admin_id           BIGINT REFERENCES admin (id) ON DELETE RESTRICT,
     coordinates_id     BIGINT    NOT NULL REFERENCES coordinates (id) ON DELETE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS vehicle_import_operation
 (
     id             BIGSERIAL PRIMARY KEY,
-    admin_id       BIGINT REFERENCES admin (id) ON DELETE RESTRICT,
     status         BOOLEAN,
     imported_count INTEGER,
     creation_time  TIMESTAMP NOT NULL DEFAULT now()

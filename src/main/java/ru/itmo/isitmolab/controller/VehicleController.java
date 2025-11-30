@@ -2,17 +2,13 @@ package ru.itmo.isitmolab.controller;
 
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.dto.VehicleDto;
 import ru.itmo.isitmolab.dto.VehicleImportItemDto;
-import ru.itmo.isitmolab.service.SessionService;
 import ru.itmo.isitmolab.service.VehicleService;
 
 import java.util.List;
@@ -27,15 +23,9 @@ public class VehicleController {
     @Inject
     VehicleService vehicleService;
 
-    @Inject
-    SessionService sessionService;
-
-    @Context
-    HttpServletRequest request;
-
     @POST
     public Response createVehicle(@Valid VehicleDto dto) {
-        Long id = vehicleService.createNewVehicle(dto, request.getSession(false));
+        Long id = vehicleService.createNewVehicle(dto);
         return Response.status(Response.Status.CREATED)
                 .entity(Map.of("id", id))
                 .build();
@@ -73,7 +63,7 @@ public class VehicleController {
     @Path("/import")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response importVehicles(@Valid List<@Valid VehicleImportItemDto> items) {
-        vehicleService.importVehicles(items, request.getSession(false));
+        vehicleService.importVehicles(items);
         return Response.ok().build();
     }
 
@@ -81,13 +71,8 @@ public class VehicleController {
     @Path("/import/history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getImportHistory(@QueryParam("limit") @DefaultValue("50") int limit) {
-        // HttpSession session = request.getSession(false);
-        // Long adminId = sessionService.getCurrentUserId(session);
-
-        // var history = vehicleService.getHistoryForAdmin(adminId, limit);
-        // return Response.ok(history).build();
-        return Response.ok(List.of()).build(); // возвращаем пустой список, так как авторизация отключена
+        var history = vehicleService.getHistoryForAdmin(limit);
+        return Response.ok(history).build();
     }
 
 }
-

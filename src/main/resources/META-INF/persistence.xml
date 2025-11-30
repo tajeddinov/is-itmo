@@ -3,8 +3,6 @@
     <persistence-unit name="studsPU" transaction-type="JTA">
         <jta-data-source>java:/jdbc/studs</jta-data-source>
 
-        <class>ru.itmo.isitmolab.model.Vehicle</class>
-
         <properties>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
@@ -12,5 +10,3 @@
 
     </persistence-unit>
 </persistence>
-
-

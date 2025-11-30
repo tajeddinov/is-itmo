@@ -2,17 +2,14 @@ package ru.itmo.isitmolab.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import ru.itmo.isitmolab.dao.AdminDao;
 import ru.itmo.isitmolab.dao.CoordinatesDao;
 import ru.itmo.isitmolab.dao.VehicleDao;
 import ru.itmo.isitmolab.dao.VehicleImportOperationDao;
 import ru.itmo.isitmolab.dto.*;
-import ru.itmo.isitmolab.model.Admin;
 import ru.itmo.isitmolab.model.Coordinates;
 import ru.itmo.isitmolab.model.Vehicle;
 import ru.itmo.isitmolab.model.VehicleImportOperation;
@@ -29,12 +26,6 @@ public class VehicleService {
     private VehicleDao dao;
 
     @Inject
-    private AdminDao adminDao;
-
-    @Inject
-    private SessionService sessionService;
-
-    @Inject
     private VehicleWsService wsHub;
 
     @Inject
@@ -45,20 +36,11 @@ public class VehicleService {
 
 
     @Transactional
-    public Long createNewVehicle(VehicleDto dto, HttpSession session) {
-        // Long adminId = sessionService.getCurrentUserId(session);
-        // if (adminId == null) {
-        //     throw new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED);
-        // }
-
-        // Admin admin = adminDao.findById(adminId)
-        //         .orElseThrow(() -> new WebApplicationException(
-        //                 "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
+    public Long createNewVehicle(VehicleDto dto) {
 
         Coordinates coords = resolveCoordinatesForDto(dto);
 
         Vehicle v = VehicleDto.toEntity(dto, null);
-        // v.setAdmin(admin);
         v.setCoordinates(coords);
 
         dao.save(v);
@@ -127,34 +109,26 @@ public class VehicleService {
     }
 
     @Transactional
-    public void importVehicles(List<VehicleImportItemDto> items, HttpSession session) {
-        // Long adminId = sessionService.getCurrentUserId(session);
-
-        // Admin admin = adminDao.findById(adminId)
-        //         .orElseThrow(() -> new WebApplicationException(
-        //                 "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
-
+    public void importVehicles(List<VehicleImportItemDto> items) {
         for (VehicleImportItemDto item : items) {
             VehicleDto dto = VehicleImportItemDto.toEntity(item);
             Coordinates coords = resolveCoordinatesForDto(dto);
             Vehicle v = VehicleDto.toEntity(dto, null);
-            // v.setAdmin(admin);
             v.setCoordinates(coords);
             dao.save(v);
         }
 
-        // VehicleImportOperation op = new VehicleImportOperation();
-        // op.setAdmin(admin);
-        // op.setStatus(Boolean.TRUE);
-        // op.setImportedCount(items.size());
+        VehicleImportOperation op = new VehicleImportOperation();
+        op.setStatus(Boolean.TRUE);
+        op.setImportedCount(items.size());
 
-        // importOperationDao.save(op);
+        importOperationDao.save(op);
 
         wsHub.broadcastText("refresh");
     }
 
-    public List<VehicleImportHistoryItemDto> getHistoryForAdmin(Long adminId, int limit) {
-        return importOperationDao.findLastForAdmin(adminId, limit)
+    public List<VehicleImportHistoryItemDto> getHistoryForAdmin(int limit) {
+        return importOperationDao.findLastForAdmin(limit)
                 .stream()
                 .map(VehicleImportHistoryItemDto::toDto)
                 .collect(Collectors.toList());
