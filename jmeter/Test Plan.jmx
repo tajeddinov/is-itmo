@@ -5,12 +5,15 @@
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults">
         <stringProp name="HTTPSampler.domain">localhost</stringProp>
         <stringProp name="HTTPSampler.port">8080</stringProp>
         <stringProp name="HTTPSampler.protocol">http</stringProp>
+        <stringProp name="HTTPSampler.path">/app</stringProp>
         <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
           <collectionProp name="Arguments.arguments">
             <elementProp name="" elementType="HTTPArgument">
@@ -37,7 +40,7 @@
         </collectionProp>
       </HeaderManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Crud">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Crud" enabled="true">
         <intProp name="ThreadGroup.num_threads">2</intProp>
         <intProp name="ThreadGroup.ramp_time">0</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -77,13 +80,13 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract VehicleId">
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract VehicleId" enabled="true">
             <stringProp name="JSONPostProcessor.referenceNames">vehicleId</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.id</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
           </JSONPostProcessor>
           <hashTree/>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -142,7 +145,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -191,7 +194,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -276,7 +279,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -326,7 +329,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
           <collectionProp name="Arguments.arguments">
             <elementProp name="vehicleId" elementType="Argument">
               <stringProp name="Argument.name">vehicleId</stringProp>
@@ -365,7 +368,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -414,7 +417,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -481,7 +484,7 @@
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -519,7 +522,7 @@
           </ResultCollector>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="CREATE SAME UNIQUE" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="CREATE SAME UNIQUE">
           <stringProp name="HTTPSampler.path">/app/api/vehicle</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -601,7 +604,7 @@
           <collectionProp name="Arguments.arguments">
             <elementProp name="vehicleId" elementType="Argument">
               <stringProp name="Argument.name">vehicleId</stringProp>
-              <stringProp name="Argument.value">113</stringProp>
+              <stringProp name="Argument.value">167</stringProp>
               <stringProp name="Argument.metadata">=</stringProp>
             </elementProp>
           </collectionProp>
@@ -903,7 +906,7 @@
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="IMPORT | IMPORT ">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="IMPORT | IMPORT " enabled="true">
         <intProp name="ThreadGroup.num_threads">1</intProp>
         <intProp name="ThreadGroup.ramp_time">0</intProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -919,6 +922,15 @@
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
+            <collectionProp name="HTTPFileArgs.files">
+              <elementProp name="/Users/ramiltadzheddinov/Projects/is-itmo-lab/jmeter/data/import_import_1.json" elementType="HTTPFileArg">
+                <stringProp name="File.mimetype">application/json</stringProp>
+                <stringProp name="File.path">/Users/ramiltadzheddinov/Projects/is-itmo-lab/jmeter/data/import_import_1.json</stringProp>
+                <stringProp name="File.paramname"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -936,9 +948,9 @@
     &quot;fuelType&quot;: &quot;KEROSENE&quot;,&#xd;
     &quot;coordinates&quot;: {&#xd;
       &quot;x&quot;: ${__groovy(11.5 + ctx.getThreadNum(),)},&#xd;
-    	 &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
-    }&#xd;
-  },&#xd;
+  &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
+}&#xd;
+},&#xd;
   {&#xd;
     &quot;name&quot;: &quot;CREATE_SAME_UNIQUE_NAME&quot;,&#xd;
     &quot;type&quot;: &quot;MOTORCYCLE&quot;,&#xd;
@@ -950,9 +962,9 @@
     &quot;fuelType&quot;: &quot;MANPOWER&quot;,&#xd;
     &quot;coordinates&quot;: {&#xd;
       &quot;x&quot;: ${__groovy(11.5 + ctx.getThreadNum(),)},&#xd;
-      &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
-    }&#xd;
-  }&#xd;
+  &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
+}&#xd;
+}&#xd;
 ]&#xd;
 </stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
@@ -1004,6 +1016,15 @@
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <elementProp name="HTTPsampler.Files" elementType="HTTPFileArgs">
+            <collectionProp name="HTTPFileArgs.files">
+              <elementProp name="/Users/ramiltadzheddinov/Projects/is-itmo-lab/jmeter/data/import_import_2.json" elementType="HTTPFileArg">
+                <stringProp name="File.mimetype">application/json</stringProp>
+                <stringProp name="File.path">/Users/ramiltadzheddinov/Projects/is-itmo-lab/jmeter/data/import_import_2.json</stringProp>
+                <stringProp name="File.paramname"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -1021,9 +1042,9 @@
     &quot;fuelType&quot;: &quot;KEROSENE&quot;,&#xd;
     &quot;coordinates&quot;: {&#xd;
       &quot;x&quot;: ${__groovy(11.5 + ctx.getThreadNum(),)},&#xd;
-    	 &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
-    }&#xd;
-  },&#xd;
+  &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
+}&#xd;
+},&#xd;
   {&#xd;
     &quot;name&quot;: &quot;ImportedCar_${__Random(1,100000,)}&quot;,&#xd;
     &quot;type&quot;: &quot;MOTORCYCLE&quot;,&#xd;
@@ -1035,9 +1056,9 @@
     &quot;fuelType&quot;: &quot;MANPOWER&quot;,&#xd;
     &quot;coordinates&quot;: {&#xd;
       &quot;x&quot;: ${__groovy(11.5 + ctx.getThreadNum(),)},&#xd;
-      &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
-    }&#xd;
-  }&#xd;
+  &quot;y&quot;: ${__groovy(21.7 + ctx.getThreadNum(),)}&#xd;
+}&#xd;
+}&#xd;
 ]&#xd;
 </stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>

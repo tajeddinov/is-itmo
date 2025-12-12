@@ -382,26 +382,26 @@ export default function MainPage() {
         if (!file) return;
 
         try {
-            const text = await file.text();
-            let parsed;
+            // Быстрая проверка формата перед отправкой файла на сервер
             try {
-                parsed = JSON.parse(text);
+                const text = await file.text();
+                const parsed = JSON.parse(text);
+                if (!Array.isArray(parsed)) {
+                    toast.warning("Ожидается JSON-массив объектов для импорта");
+                    return;
+                }
             } catch (err) {
                 toast.warning("Файл не является корректным JSON");
-                return;
-            }
-            if (!Array.isArray(parsed)) {
-                toast.warning("Ожидается JSON-массив объектов для импорта");
                 return;
             }
 
             const response = await fetch(`${API_BASE}/api/vehicle/import`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": file.type || "application/json",
                 },
                 credentials: 'include',
-                body: JSON.stringify(parsed),
+                body: file,
             });
 
             if (response.ok) {
