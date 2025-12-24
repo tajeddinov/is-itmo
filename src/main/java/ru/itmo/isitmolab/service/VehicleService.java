@@ -2,70 +2,68 @@ package ru.itmo.isitmolab.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpSession;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import ru.itmo.isitmolab.dao.AdminDao;
 import ru.itmo.isitmolab.dao.CoordinatesDao;
 import ru.itmo.isitmolab.dao.VehicleDao;
 import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.dto.GridTableResponse;
 import ru.itmo.isitmolab.dto.VehicleDto;
-import ru.itmo.isitmolab.model.Admin;
+import ru.itmo.isitmolab.exception.VehicleNameNotUniqueException;
 import ru.itmo.isitmolab.model.Coordinates;
 import ru.itmo.isitmolab.model.Vehicle;
 import ru.itmo.isitmolab.ws.VehicleWsService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @ApplicationScoped
 public class VehicleService {
 
     @Inject
     private VehicleDao dao;
-
-    @Inject
-    private AdminDao adminDao;
-
-    @Inject
-    private SessionService sessionService;
-
     @Inject
     private VehicleWsService wsHub;
-
     @Inject
     private CoordinatesDao coordinatesDao;
 
     @Transactional
-    public Long createNewVehicle(VehicleDto dto, HttpSession session) {
-        Long adminId = sessionService.getCurrentUserId(session);
-        if (adminId == null) {
-            throw new WebApplicationException("Unauthorized", Response.Status.UNAUTHORIZED);
-        }
-
-        Admin admin = adminDao.findById(adminId)
-                .orElseThrow(() -> new WebApplicationException(
-                        "Admin not found: " + adminId, Response.Status.UNAUTHORIZED));
+    public Long createNewVehicle(VehicleDto dto) {
+        // ОГРАНИЧЕНИЕ
+        checkUniqueVehicleName(dto.getName(), null);
 
         Coordinates coords = resolveCoordinatesForDto(dto);
 
         Vehicle v = VehicleDto.toEntity(dto, null);
-        v.setAdmin(admin);
         v.setCoordinates(coords);
 
         dao.save(v);
+        dao.flush(); // важно для GenerationType.IDENTITY (TomEE/OpenJPA выставляет id только после flush/commit)
+        Long id = v.getId();
+        if (id == null) {
+            throw new WebApplicationException(
+                    Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .type(MediaType.APPLICATION_JSON_TYPE)
+                            .entity(Map.of("message", "Vehicle создан, но id не сгенерировался (flush не дал id)"))
+                            .build()
+            );
+        }
         wsHub.broadcastText("refresh");
-        return v.getId();
+        return id;
     }
 
     @Transactional
     public void updateVehicle(Long id, VehicleDto dto) {
-        Vehicle current = dao.findById(id)
-                .orElseThrow(() -> new WebApplicationException(
-                        "Vehicle not found: " + id, Response.Status.NOT_FOUND));
+        Vehicle current = dao.findById(id).orElseThrow(() -> new WebApplicationException("Vehicle not found: " + id, Response.Status.NOT_FOUND));
+
+        // ОГРАНИЧЕНИЕ
+        if (dto.getName() != null && !dto.getName().equals(current.getName()))
+            checkUniqueVehicleName(dto.getName(), id);
+
 
         if (dto.getCoordinatesId() != null || (dto.getCoordinatesX() != null && dto.getCoordinatesY() != null)) {
             Coordinates coords = resolveCoordinatesForDto(dto);
@@ -73,12 +71,14 @@ public class VehicleService {
         }
 
         VehicleDto.toEntity(dto, current);
+
         dao.save(current);
         wsHub.broadcastText("refresh");
     }
 
+    @Transactional
     public VehicleDto getVehicleById(Long id) {
-        Vehicle v = dao.findById(id)
+        Vehicle v = dao.findByIdWithCoordinates(id)
                 .orElseThrow(() -> new WebApplicationException(
                         "Vehicle not found: " + id, Response.Status.NOT_FOUND));
         return VehicleDto.toDto(v);
@@ -86,12 +86,12 @@ public class VehicleService {
 
     @Transactional
     public void deleteVehicleById(Long id) {
-        if (!dao.existsById(id)) {
-            throw new WebApplicationException(
-                    "Vehicle not found: " + id, Response.Status.NOT_FOUND);
+        try {
+            dao.findById(id).orElseThrow(() -> new WebApplicationException("Vehicle not found: " + id, Response.Status.NOT_FOUND));
+            dao.deleteById(id);
+        } catch (OptimisticLockException e) {
+            throw new WebApplicationException("The vehicle was already deleted by another user.", Response.Status.CONFLICT);
         }
-        dao.deleteById(id);
-        wsHub.broadcastText("refresh");
     }
 
     public GridTableResponse<VehicleDto> queryVehiclesTable(GridTableRequest req) {
@@ -104,7 +104,7 @@ public class VehicleService {
         return new GridTableResponse<>(dtos, (int) total);
     }
 
-    private Coordinates resolveCoordinatesForDto(VehicleDto dto) {
+    public Coordinates resolveCoordinatesForDto(VehicleDto dto) {
         if (dto.getCoordinatesId() != null) {
             return coordinatesDao.findById(dto.getCoordinatesId())
                     .orElseThrow(() -> new WebApplicationException(
@@ -119,6 +119,19 @@ public class VehicleService {
         }
         throw new WebApplicationException("coordinatesId или (coordinatesX, coordinatesY) — обязательны",
                 Response.Status.BAD_REQUEST);
+    }
+
+    @Transactional
+    public void checkUniqueVehicleName(String name, Long excludeId) {
+        if (name == null || name.isBlank()) return;
+
+        Optional<Vehicle> existing =
+                (excludeId == null)
+                        ? dao.findByName(name)
+                        : dao.findByNameAndIdNot(name, excludeId);
+
+        if (existing.isPresent())
+            throw new VehicleNameNotUniqueException(name);
     }
 
 }

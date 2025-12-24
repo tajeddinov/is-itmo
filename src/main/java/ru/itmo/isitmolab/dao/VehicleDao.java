@@ -1,21 +1,21 @@
 package ru.itmo.isitmolab.dao;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.EntityGraph;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.model.Coordinates;
 import ru.itmo.isitmolab.model.Vehicle;
+import ru.itmo.isitmolab.util.l2.L2CacheStats;
 import ru.itmo.isitmolab.util.GridTablePredicateBuilder;
 
 import java.util.*;
 
+@L2CacheStats
 @ApplicationScoped
 public class VehicleDao {
 
-    @PersistenceContext(unitName = "studsPU")
+    @PersistenceContext
     EntityManager em;
 
     public void save(Vehicle v) {
@@ -26,10 +26,24 @@ public class VehicleDao {
         }
     }
 
+    public void flush() {
+        em.flush();
+    }
+
     public Optional<Vehicle> findById(Long id) {
         if (id == null)
             return Optional.empty();
         return Optional.ofNullable(em.find(Vehicle.class, id));
+    }
+
+    public Optional<Vehicle> findByIdWithCoordinates(Long id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+
+        EntityGraph<Vehicle> graph = getWithCoordsGraph();
+        Map<String, Object> hints = Map.of("jakarta.persistence.loadgraph", graph);
+        return Optional.ofNullable(em.find(Vehicle.class, id, hints));
     }
 
     public boolean existsById(Long id) {
@@ -87,9 +101,9 @@ public class VehicleDao {
             return List.of();
 
         // грузим полноценные сущности по найденным id с графом
-        EntityGraph<Vehicle> graph = getWithCoordsAdminGraph();
+        EntityGraph<Vehicle> graph = getWithCoordsGraph();
 
-        // подтягивает объекты Vehicle с нужными связями (через EntityGraph: coordinates, admin)
+        // подтягивает объекты Vehicle с нужными связями (через EntityGraph: coordinates)
         List<Vehicle> items = em.createQuery(
                         "select v from Vehicle v where v.id in :ids", Vehicle.class)
                 .setParameter("ids", ids)
@@ -97,11 +111,9 @@ public class VehicleDao {
                 .getResultList();
 
         // Сохраняем исходный порядок (IN не гарантирует порядок)
-        // надо чтобы был такой порядок: ids = [42, 7, 15, 3]
-        // IN запрос мог вернуть items = [V(7), V(3), V(42), V(15)]
-        Map<Long, Integer> rank = new HashMap<>(ids.size() * 2); // *2 чтобы не было ресайз, ёмкость таблицы должна быть >= n / 0.75 ~ 1.33n
+        Map<Long, Integer> rank = new HashMap<>(ids.size() * 2);
         for (int i = 0; i < ids.size(); i++)
-            rank.put(ids.get(i), i); // мапа id -> позиция
+            rank.put(ids.get(i), i);
         items.sort(Comparator.comparingInt(v -> rank.getOrDefault(v.getId(), Integer.MAX_VALUE)));
 
         return items;
@@ -120,12 +132,12 @@ public class VehicleDao {
     }
 
     @SuppressWarnings("unchecked")
-    private EntityGraph<Vehicle> getWithCoordsAdminGraph() {
+    private EntityGraph<Vehicle> getWithCoordsGraph() {
         try {
-            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinatesAdmin");
+            return (EntityGraph<Vehicle>) em.getEntityGraph("Vehicle.withCoordinates");
         } catch (IllegalArgumentException ex) {
             EntityGraph<Vehicle> g = em.createEntityGraph(Vehicle.class);
-            g.addAttributeNodes("coordinates", "admin");
+            g.addAttributeNodes("coordinates");
             return g;
         }
     }
@@ -145,6 +157,109 @@ public class VehicleDao {
                 .setParameter("to", toRef)
                 .setParameter("from", fromCoordinatesId)
                 .executeUpdate();
+    }
+
+    public boolean existsByName(String name) {
+        if (name == null) return false;
+        Long cnt = em.createQuery(
+                        "select count(v) from Vehicle v where v.name = :name", Long.class)
+                .setParameter("name", name)
+                .getSingleResult();
+        return cnt != null && cnt > 0;
+    }
+
+    public boolean existsByNameAndIdNot(String name, Long id) {
+        if (name == null || id == null) return false;
+        Long cnt = em.createQuery(
+                        "select count(v) from Vehicle v where v.name = :name and v.id <> :id", Long.class)
+                .setParameter("name", name)
+                .setParameter("id", id)
+                .getSingleResult();
+        return cnt != null && cnt > 0;
+    }
+
+    public Vehicle findByNameWithPessimisticLock(String name) {
+        try {
+            return em.createQuery(
+                            "select v from Vehicle v where v.name = :name", Vehicle.class)
+                    .setParameter("name", name)
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE) // Блокируем запись
+                    .setMaxResults(1)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public Vehicle findByNameAndIdNotWithPessimisticLock(String name, Long excludeId) {
+        try {
+            return em.createQuery(
+                            "select v from Vehicle v where v.name = :name and v.id != :excludeId", Vehicle.class)
+                    .setParameter("name", name)
+                    .setParameter("excludeId", excludeId)
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE) // Блокируем запись
+                    .setMaxResults(1)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public Vehicle findByNameWithOptimisticLock(String name) {
+        try {
+            return em.createQuery(
+                            "select v from Vehicle v where v.name = :name", Vehicle.class)
+                    .setParameter("name", name)
+                    .setLockMode(LockModeType.OPTIMISTIC) // Используем Optimistic Lock
+                    .setMaxResults(1)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public Vehicle findByNameAndIdNotWithOptimisticLock(String name, Long excludeId) {
+        try {
+            return em.createQuery(
+                            "select v from Vehicle v where v.name = :name and v.id != :excludeId", Vehicle.class)
+                    .setParameter("name", name)
+                    .setParameter("excludeId", excludeId)
+                    .setLockMode(LockModeType.OPTIMISTIC) // Используем Optimistic Lock
+                    .setMaxResults(1)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
+
+    public Optional<Vehicle> findByName(String name) {
+        if (name == null) return Optional.empty();
+        try {
+            Vehicle vehicle = em.createQuery(
+                            "select v from Vehicle v where v.name = :name", Vehicle.class)
+                    .setParameter("name", name)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            return Optional.of(vehicle);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    public Optional<Vehicle> findByNameAndIdNot(String name, Long excludeId) {
+        // excludeId - при update проверить уникальность имени, исключая эту запись (есть ли другое ТС с таким именем)
+        if (name == null || excludeId == null) return Optional.empty();
+        try {
+            Vehicle vehicle = em.createQuery(
+                            "select v from Vehicle v where v.name = :name and v.id != :excludeId", Vehicle.class)
+                    .setParameter("name", name)
+                    .setParameter("excludeId", excludeId)
+                    .setMaxResults(1)
+                    .getSingleResult();
+            return Optional.of(vehicle);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 
 }

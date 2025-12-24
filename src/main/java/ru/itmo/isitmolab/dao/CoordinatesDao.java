@@ -7,13 +7,15 @@ import jakarta.persistence.criteria.*;
 import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.model.Coordinates;
 import ru.itmo.isitmolab.util.GridTablePredicateBuilder;
+import ru.itmo.isitmolab.util.l2.L2CacheStats;
 
 import java.util.*;
 
+@L2CacheStats
 @ApplicationScoped
 public class CoordinatesDao {
 
-    @PersistenceContext(unitName = "studsPU")
+    @PersistenceContext
     EntityManager em;
 
     public void save(Coordinates c) {
@@ -86,18 +88,49 @@ public class CoordinatesDao {
     }
 
     public Coordinates findOrCreateByXY(Double x, Float y) {
-        Coordinates c = em.createQuery(
+
+        // попытка найти уже существующие координаты
+        Coordinates existing = em.createQuery(
                         "select c from Coordinates c where c.x = :x and c.y = :y", Coordinates.class)
                 .setParameter("x", x)
                 .setParameter("y", y)
+                .setMaxResults(1)
                 .getResultStream()
                 .findFirst()
                 .orElse(null);
-        if (c != null) return c;
 
-        c = Coordinates.builder().x(x).y(y).build();
-        em.persist(c);
-        return c;
+        if (existing != null) {
+            return existing;
+        }
+
+        // Если нет - insert с ON CONFLICT DO NOTHING
+        // Этот запрос НЕ бросает ошибку, даже если другая транзакция уже успела вставить координаты с такими же (x, y)
+        em.createNativeQuery("""
+                        INSERT INTO coordinates (x, y)
+                        VALUES (:x, :y)
+                        ON CONFLICT (x, y) DO NOTHING
+                        """)
+                .setParameter("x", x)
+                .setParameter("y", y)
+                .executeUpdate();
+
+        // Координаты либо только что созданы, либо уже были созданы параллельной транзакцией.
+        // В любом случае - теперь они точно есть, просто достаём их.
+        Coordinates result = em.createQuery(
+                        "select c from Coordinates c where c.x = :x and c.y = :y", Coordinates.class)
+                .setParameter("x", x)
+                .setParameter("y", y)
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+
+        if (result == null) {
+            // Теоретически сюда попасть нельзя
+            throw new IllegalStateException("Coordinates not found after upsert for x=" + x + ", y=" + y);
+        }
+
+        return result;
     }
 
     public Map<Long, Integer> countVehiclesForCoordinatesIds(List<Long> ids) {

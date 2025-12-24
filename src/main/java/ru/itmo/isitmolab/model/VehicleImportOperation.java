@@ -13,21 +13,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "admin")
-public class Admin {
+@Table(name = "vehicle_import_operation")
+public class VehicleImportOperation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "login", nullable = false, unique = true)
-    private String login;
+    @Column(name = "status")
+    private Boolean status;
 
-    @Column(name = "pass_hash", nullable = false)
-    private String passHash;
-
-    @Column(name = "salt", nullable = false)
-    private String salt;
+    @Column(name = "imported_count")
+    private Integer importedCount;
 
     @Column(name = "creation_time", nullable = false, updatable = false)
     private LocalDateTime creationTime;
+
+    @PrePersist
+    public void prePersist() {
+        if (creationTime == null) {
+            creationTime = LocalDateTime.now();
+        }
+    }
 }

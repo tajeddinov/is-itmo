@@ -9,9 +9,6 @@ import {
     ModalContent,
     ModalFooter,
     ModalHeader,
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
     Select,
     SelectItem,
     useDisclosure
@@ -19,7 +16,7 @@ import {
 import {toast} from "sonner";
 import styles from "./mainPage.module.css";
 import {useNavigate} from "react-router-dom";
-import useAuthStore from "../store/auth.js";
+// import useAuthStore from "../store/auth.js";
 import {API_BASE} from "../../cfg.js";
 import VehicleTable from "../component/vehicleTable.jsx";
 import CoordinatesPicker from "../component/CoordinatesPicker.jsx";
@@ -29,7 +26,7 @@ const FUEL_TYPES = ["KEROSENE", "MANPOWER", "NUCLEAR"];
 
 export default function MainPage() {
     const navigate = useNavigate();
-    const {setIsAuthed} = useAuthStore();
+    // const {setIsAuthed} = useAuthStore();
 
     // null - новое, иначе - редактирование
     const [activeVehicle, setActiveVehicle] = useState(null);
@@ -210,10 +207,10 @@ export default function MainPage() {
             } else {
                 const errorData = await res.json().catch(() => ({}));
                 switch (res.status) {
-                    case 401:
-                        setIsAuthed(false);
-                        toast.error(errorData.message || 'Not correct credentials');
-                        break;
+                    // case 401:
+                    //     setIsAuthed(false);
+                    //     toast.error(errorData.message || 'Not correct credentials');
+                    //     break;
                     default:
                         toast.error(errorData.message || `Error: ${res.status} - ${res.statusText}`);
                         break;
@@ -252,20 +249,20 @@ export default function MainPage() {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            const res = await fetch(`${API_BASE}/api/auth/logout`, {
-                method: "POST",
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-            setIsAuthed(false);
-            navigate("/login", {replace: true});
-            toast.success("Вы вышли из аккаунта");
-        } catch (err) {
-            toast.error("Не удалось выйти: " + (err.message || ""));
-        }
-    };
+    // const handleLogout = async () => {
+    //     try {
+    //         const res = await fetch(`${API_BASE}/api/auth/logout`, {
+    //             method: "POST",
+    //             credentials: "include",
+    //         });
+    //         if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+    //         setIsAuthed(false);
+    //         navigate("/login", {replace: true});
+    //         toast.success("Вы вышли из аккаунта");
+    //     } catch (err) {
+    //         toast.error("Не удалось выйти: " + (err.message || ""));
+    //     }
+    // };
 
     const {isOpen: isPresetOpen, onOpen: onPresetOpen, onOpenChange: onPresetOpenChange} = useDisclosure();
 
@@ -374,6 +371,108 @@ export default function MainPage() {
         tableControls?.clearFilters?.();
     };
 
+    const fileInputRef = useRef(null);
+    const handleImportClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+    const handleFileChange = async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        try {
+            // Быстрая проверка формата перед отправкой файла на сервер
+            try {
+                const text = await file.text();
+                const parsed = JSON.parse(text);
+                if (!Array.isArray(parsed)) {
+                    toast.warning("Ожидается JSON-массив объектов для импорта");
+                    return;
+                }
+            } catch (err) {
+                toast.warning("Файл не является корректным JSON");
+                return;
+            }
+
+            const response = await fetch(`${API_BASE}/api/vehicle/import`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": file.type || "application/json",
+                },
+                credentials: 'include',
+                body: file,
+            });
+
+            if (response.ok) {
+                refreshGrid();
+                toast.success("Сохранено");
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                switch (response.status) {
+                    case 400:
+                        if (Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+                            const lines = errorData.errors.map(err => {
+                                const rowPart = err.rowNumber != null
+                                    ? `Элемент ${err.rowNumber}: `
+                                    : "";
+                                return rowPart + err.message;
+                            });
+
+                            toast.error(
+                                <div>
+                                    {lines.map((line, idx) => (
+                                        <div key={idx}>{line}</div>
+                                    ))}
+                                </div>
+                            );
+                        } else if (errorData.message) {
+                            toast.error(errorData.message);
+                        } else {
+                            toast.error("Ошибка валидации (400)");
+                        }
+                        break;
+                    default:
+                        toast.error(errorData.message || `Error: ${response.status} - ${response.statusText}`);
+                        break;
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("catch error");
+        } finally {
+            e.target.value = "";
+        }
+    };
+
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
+    const openHistoryModal = async () => {
+        setIsHistoryOpen(true);
+        setHistoryLoading(true);
+        try {
+            const response = await fetch(`${API_BASE}/api/vehicle/import/history?limit=50`, {
+                method: "GET",
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                toast.error(`Ошибка загрузки истории: ${response.status}`);
+                return;
+            }
+
+            const data = await response.json();
+            setHistory(data);
+        } catch (err) {
+            console.error(err);
+            toast.error("Ошибка сети при загрузке истории");
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
     return (
         <>
             <div className={styles.totalwrapp}>
@@ -390,12 +489,34 @@ export default function MainPage() {
                             <Button color="warning" className={styles.control} onPress={handleResetFilters}>
                                 Сбросить фильтры
                             </Button>
-                            <Button color="primary" className={styles.control} onPress={() => navigate("/coordinates")}>
+                            <Button color="primary" className={styles.control}
+                                    onPress={() => navigate("/coordinates")}>
                                 Coordinates
+                            </Button>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="application/json"
+                                style={{display: "none"}}
+                                onChange={handleFileChange}
+                            />
+                            <Button
+                                color="primary"
+                                className={styles.control}
+                                onPress={handleImportClick}
+                            >
+                                Импорт JSON
+                            </Button>
+                            <Button
+                                color="secondary"
+                                className={styles.control}
+                                onPress={openHistoryModal}
+                            >
+                                История
                             </Button>
                         </div>
                     </div>
-                    <div className={styles.right}>
+                    {/* <div className={styles.right}>
                         <Popover placement="bottom-end" showArrow>
                             <PopoverTrigger>
                                 <div className={styles.profileWrapp}>
@@ -408,7 +529,7 @@ export default function MainPage() {
                                 <Button color="danger" onPress={handleLogout}>Выход</Button>
                             </PopoverContent>
                         </Popover>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 
@@ -417,6 +538,68 @@ export default function MainPage() {
                 onReadyRefresh={(fn) => setRefreshGrid(() => fn)}
                 onReadyControls={(controls) => setTableControls(controls)}
             />
+
+            <Modal
+                isOpen={isHistoryOpen}
+                onOpenChange={setIsHistoryOpen}
+                size="4xl"
+                scrollBehavior="inside"
+            >
+                <ModalContent>
+                    {onClose => (
+                        <>
+                            <ModalHeader className={styles.modalHeader}>
+                                История импорта
+                            </ModalHeader>
+                            <ModalBody>
+                                {historyLoading ? (
+                                    <div>Загрузка...</div>
+                                ) : history.length === 0 ? (
+                                    <div>История пуста</div>
+                                ) : (
+                                    <div className={styles.historyTableWrapper}>
+                                        <table className={styles.historyTable}>
+                                            <thead>
+                                            <tr>
+                                                <th>ID операции</th>
+                                                <th>Статус</th>
+                                                <th>Пользователь</th>
+                                                <th>Добавлено объектов</th>
+                                                <th>Дата/время</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {history.map((item) => (
+                                                <tr key={item.id}>
+                                                    <td>{item.id}</td>
+                                                    <td>{item.success ? "Успех" : "Ошибка"}</td>
+                                                    <td>{item.username}</td>
+                                                    <td>
+                                                        {item.success
+                                                            ? item.importedCount
+                                                            : "-"}
+                                                    </td>
+                                                    <td>
+                                                        {item.creationTime
+                                                            ? new Date(item.creationTime).toLocaleString()
+                                                            : ""}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </ModalBody>
+                            <ModalFooter>
+                                <Button variant="light" onPress={onClose}>
+                                    Закрыть
+                                </Button>
+                            </ModalFooter>
+                        </>
+                    )}
+                </ModalContent>
+            </Modal>
 
             <Modal isOpen={isOpen} onOpenChange={onOpenChange} isDismissable={false}>
                 <ModalContent className={styles.postModalBody}>
@@ -466,7 +649,8 @@ export default function MainPage() {
                                     <Input type="number" label="Мощность двигателя" variant="bordered"
                                            value={enginePower} onChange={(e) => setEnginePower(e.target.value)}
                                            min={0}/>
-                                    <Input type="number" label="Кол-во колёс" variant="bordered" value={numberOfWheels}
+                                    <Input type="number" label="Кол-во колёс" variant="bordered"
+                                           value={numberOfWheels}
                                            onChange={(e) => setNumberOfWheels(e.target.value)} isRequired min={1}/>
                                 </div>
 
@@ -479,7 +663,8 @@ export default function MainPage() {
 
                                 <div className="grid grid-cols-2 gap-3">
                                     <Input type="number" label="Расход топлива" variant="bordered"
-                                           value={fuelConsumption} onChange={(e) => setFuelConsumption(e.target.value)}
+                                           value={fuelConsumption}
+                                           onChange={(e) => setFuelConsumption(e.target.value)}
                                            isRequired/>
                                     <Select label="Тип топлива" variant="bordered"
                                             selectedKeys={fuelType ? [fuelType] : []}
