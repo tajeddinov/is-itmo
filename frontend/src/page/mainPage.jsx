@@ -399,6 +399,7 @@ export default function MainPage() {
                 method: "POST",
                 headers: {
                     "Content-Type": file.type || "application/json",
+                    "X-Filename": file.name || "import.json",
                 },
                 credentials: 'include',
                 body: file,
@@ -563,8 +564,8 @@ export default function MainPage() {
                                             <tr>
                                                 <th>ID операции</th>
                                                 <th>Статус</th>
-                                                <th>Пользователь</th>
                                                 <th>Добавлено объектов</th>
+                                                <th>Файл</th>
                                                 <th>Дата/время</th>
                                             </tr>
                                             </thead>
@@ -573,11 +574,26 @@ export default function MainPage() {
                                                 <tr key={item.id}>
                                                     <td>{item.id}</td>
                                                     <td>{item.success ? "Успех" : "Ошибка"}</td>
-                                                    <td>{item.username}</td>
                                                     <td>
                                                         {item.success
                                                             ? item.importedCount
                                                             : "-"}
+                                                    </td>
+                                                    <td>
+                                                        {(item.fileDownloadUrl || item.success) ? (
+                                                            <Button
+                                                                size="sm"
+                                                                variant="flat"
+                                                                as="a"
+                                                                href={`${API_BASE}${item.fileDownloadUrl || `/api/vehicle/import/history/${item.id}/file`}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                            >
+                                                                Скачать
+                                                            </Button>
+                                                        ) : (
+                                                            "-"
+                                                        )}
                                                     </td>
                                                     <td>
                                                         {item.creationTime

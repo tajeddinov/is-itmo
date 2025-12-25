@@ -1,4 +1,5 @@
 ssh -L 21201:127.0.0.1:21201 -L 21202:127.0.0.1:21202 -L 22821:127.0.0.1:22821 -L 5432:127.0.0.1:5432 se
+ssh -L 21201:127.0.0.1:21201 -L 21202:127.0.0.1:21202 -L 22821:127.0.0.1:22821 -L 5432:127.0.0.1:5432 se
 
 scp -P 2222 -r frontend/dist/* se:/home/studs/s409659/is/www
 scp -P 2222 -r build/libs/app.war se:/home/studs/s409659/is/wildfly-37.0.1.Final/standalone/deployments

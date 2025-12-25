@@ -8,15 +8,19 @@ import jakarta.json.bind.JsonbException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.StreamingOutput;
 import ru.itmo.isitmolab.dto.GridTableRequest;
 import ru.itmo.isitmolab.dto.VehicleDto;
 import ru.itmo.isitmolab.dto.VehicleImportItemDto;
+import ru.itmo.isitmolab.model.VehicleImportOperation;
 import ru.itmo.isitmolab.service.VehicleImportService;
 import ru.itmo.isitmolab.service.VehicleService;
+import ru.itmo.isitmolab.storage.MinioStorageService;
 import ru.itmo.isitmolab.util.BeanValidation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +38,8 @@ public class VehicleController {
     VehicleService vehicleService;
     @Inject
     VehicleImportService vehicleImportService;
+    @Inject
+    MinioStorageService minioStorage;
 
     @POST
     public Response createVehicle(VehicleDto dto) {
@@ -77,10 +83,13 @@ public class VehicleController {
     @POST
     @Path("/import")
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM}) // двоичные данные без указания конкретного формата
-    public Response importVehicles(InputStream importStream) {
+    public Response importVehicles(InputStream importStream,
+                                   @HeaderParam("Content-Type") String contentType,
+                                   @HeaderParam("X-Filename") String fileName) {
         try {
-            List<VehicleImportItemDto> items = parseImportFile(importStream);
-            vehicleImportService.importVehicles(items);
+            byte[] bytes = readAll(importStream);
+            List<VehicleImportItemDto> items = parseImportFile(bytes);
+            vehicleImportService.importVehicles(items, bytes, fileName, contentType);
             return Response.ok().build();
         } catch (BadRequestException e) {
             return Response.status(Response.Status.BAD_REQUEST)
@@ -97,13 +106,54 @@ public class VehicleController {
         return Response.ok(history).build();
     }
 
-    private List<VehicleImportItemDto> parseImportFile(InputStream importStream) {
+    @GET
+    @Path("/import/history/{id}/file")
+    public Response downloadImportFile(@PathParam("id") Long id) {
+        VehicleImportOperation op = vehicleImportService.getOperationOrThrow(id);
+        if (op.getFileObjectKey() == null || op.getFileObjectKey().isBlank()) {
+            throw new NotFoundException("Файл для операции не найден: " + id);
+        }
+
+        String ct = (op.getFileContentType() == null || op.getFileContentType().isBlank())
+                ? MediaType.APPLICATION_OCTET_STREAM
+                : op.getFileContentType();
+
+        // fail-fast: чтобы в браузере не было "пустого" ответа при ошибке во время стриминга
+        try {
+            minioStorage.statObject(op.getFileObjectKey());
+        } catch (RuntimeException e) {
+            throw new NotFoundException("Файл не найден в MinIO для операции " + id + " (key=" + op.getFileObjectKey() + ")");
+        }
+
+        StreamingOutput stream = (OutputStream out) -> {
+            try (InputStream in = minioStorage.getObject(op.getFileObjectKey())) {
+                in.transferTo(out);
+            }
+        };
+
+        String name = (op.getFileName() == null || op.getFileName().isBlank())
+                ? ("import-" + id + ".json")
+                : op.getFileName();
+
+        return Response.ok(stream, ct)
+                .header("Content-Disposition", "attachment; filename=\"" + name.replace("\"", "") + "\"")
+                .build();
+    }
+
+    private byte[] readAll(InputStream importStream) {
         if (importStream == null) {
             throw new BadRequestException("Не передан файл для импорта");
         }
+        try {
+            return importStream.readAllBytes();
+        } catch (IOException e) {
+            throw new BadRequestException("Не удалось прочитать файл", e);
+        }
+    }
 
+    private List<VehicleImportItemDto> parseImportFile(byte[] bytes) {
         try (Jsonb jsonb = JsonbBuilder.create()) {
-            String payload = new String(importStream.readAllBytes(), UTF_8);
+            String payload = new String(bytes, UTF_8);
             if (payload.isBlank()) {
                 throw new BadRequestException("Файл пустой");
             }
