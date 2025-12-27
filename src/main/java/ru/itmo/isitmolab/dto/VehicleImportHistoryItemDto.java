@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 public class VehicleImportHistoryItemDto {
     private Long id;
     private boolean success;
-    private String username;
     private Integer importedCount;
     private LocalDateTime creationTime;
     private String fileName;
